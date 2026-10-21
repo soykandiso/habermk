@@ -92,6 +92,37 @@ your decisions, and how many were skipped and why.
 Limits (in `config.yaml` → `run`): max 2 posts per run, 30 per day, stories
 need ≥4 articles on vesti.mk and must be <8 h old.
 
+### Recommended: a reliable 15-minute clock
+
+GitHub's own schedule is "best effort": it can start runs late or skip them,
+and in autumn 2026 many projects saw 15-minute schedules run only every few
+hours. A free external clock fixes this by starting the **run** workflow every
+15 minutes through GitHub's API. GitHub's schedule stays on as a backup; two
+runs can never overlap, and a run started twice in a row does no harm.
+
+1. **A token that may only start this repo's workflows.** GitHub → your
+   picture → *Settings* → *Developer settings* → *Personal access tokens* →
+   *Fine-grained tokens* → *Generate new token*.
+   - Name: `habermk-clock`. Expiration: the longest offered; put a reminder in
+     your calendar a week before it ends.
+   - *Repository access* → *Only select repositories* → `habermk`.
+   - *Permissions* → *Repository permissions* → **Actions: Read and write**.
+     Nothing else.
+   - *Generate token* and copy it. This token can only start or stop this
+     repo's workflows; it cannot read your secrets or change code.
+2. **The clock.** Create a free account at https://cron-job.org →
+   *Create cronjob*:
+   - URL: `https://api.github.com/repos/soykandiso/habermk/actions/workflows/run.yml/dispatches`
+   - Schedule: every 15 minutes.
+   - *Advanced* → Request method **POST**; headers
+     `Accept: application/vnd.github+json`,
+     `Authorization: Bearer <your token>`,
+     `X-GitHub-Api-Version: 2022-11-28`; request body `{"ref":"main"}`.
+   - Save, then *Test run*: the answer must be **204**. Under *Actions → run*
+     a new run appears with the event `workflow_dispatch`.
+3. If cron-job.org later shows errors 401/403, the token expired: make a new
+   one (step 1) and paste it into the header.
+
 ## Phase 2: Facebook Page
 
 1. Create the Facebook Page.

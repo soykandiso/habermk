@@ -12,6 +12,11 @@ at most once every 3 hours per problem) and in each run's page under
   time, the bot may be paused (`/status` → "Пауза: да" → send `/resume`), or
   all AI models may be resting after a used-up free quota (`/status` →
   "Модели на пауза"). The stories wait; nothing is lost.
+- Drafts come hours apart, or *Actions → run* shows long gaps between runs:
+  GitHub's schedule is late (it is "best effort"). Set up the external
+  15-minute clock (docs/SETUP.md, "Recommended: a reliable 15-minute clock").
+- *Actions → run* never shows runs with the event `schedule`: GitHub can take
+  many hours to start a new schedule. The external clock works regardless.
 
 ## Messages from the bot
 
