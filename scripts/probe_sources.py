@@ -45,6 +45,7 @@ def snapshot(data: Path, max_snapshots: int) -> None:
         ],
     }
     data.parent.mkdir(parents=True, exist_ok=True)
+    (data.parent / "last_failed.html").unlink(missing_ok=True)  # parser works again
     with data.open("a", encoding="utf-8") as f:
         f.write(json.dumps(record, ensure_ascii=False) + "\n")
     print(f"snapshot {len(lines) + 1}: {len(clusters)} clusters")
@@ -77,7 +78,8 @@ def report(data: Path) -> str:
         "# vesti.mk cluster-ID stability report",
         "",
         f"- Snapshots: **{len(snaps)}** from {first} to {last} ({hours:.1f} h)",
-        f"- Distinct cluster IDs: **{len(titles)}** (≈ {len(titles) / hours:.1f} new per hour)",
+        f"- Distinct cluster IDs: **{len(titles)}**"
+        + (f" (≈ {len(titles) / hours:.1f} new per hour)" if hours >= 1 else ""),
         f"- Average time a cluster stays in the top list: **{sum(lifetimes) / len(lifetimes):.1f} h**",
         f"- Clusters whose headline changed but ID stayed the same: **{len(retitled)}** "
         "(good: the ID survives headline changes)",
