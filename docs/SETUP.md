@@ -79,6 +79,9 @@ link to delete it by hand.
 
 The bot reads commands and button presses at its next run (within 15–30 min).
 
+Every evening at 22:30 you get `🗓 Преглед`: stories published (per platform),
+your decisions, and how many were skipped and why.
+
 **Full auto later:** change Variable `APPROVAL_MODE` to `auto`. No code change.
 
 Limits (in `config.yaml` → `run`): max 2 posts per run, 30 per day, stories

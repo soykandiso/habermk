@@ -13,6 +13,8 @@ An item's "status" is one of:
     rejected  you pressed ❌
     expired   nobody answered within draft_ttl_hours
     posted    done on every platform (or given up on some, see "platforms")
+    failed    every platform gave up after max_platform_attempts
+    deleted   taken down with the 🗑 button
 """
 from __future__ import annotations
 

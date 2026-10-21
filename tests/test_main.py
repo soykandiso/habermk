@@ -402,3 +402,45 @@ def test_command_menu_is_set_once(make_bot):
     make_bot(tg=tg).run()
     make_bot(tg=tg).run()
     assert [m for m, _ in tg.calls].count("setMyCommands") == 1
+
+
+# ------------------------------------------------------------------ digest
+
+def test_daily_digest_once_after_digest_time(make_bot):
+    tg = FakeTelegram()
+    pub = FakePublisher("telegram")
+    make_bot(auto=True, tg=tg, pubs=[pub]).run()                  # 12:00: one post
+    evening = datetime.fromisoformat("2026-10-21T22:45:00+02:00")
+    for _ in range(2):
+        bot = make_bot(auto=True, tg=tg, pubs=[pub], now=evening)
+        bot.get_clusters = lambda: []
+        bot.run()
+    digests = [m["text"] for m in tg.sent() if m["text"].startswith("🗓")]
+    assert len(digests) == 1
+    assert "Објавени приказни: 1 (telegram 1)" in digests[0]
+
+
+def test_digest_counts_skips_by_reason(make_bot):
+    skip = json.dumps({"status": "SKIP", "sentence": "", "evidence": "", "scope": "MK",
+                       "reason": "teaser"})
+    tg = FakeTelegram()
+    evening = datetime.fromisoformat("2026-10-21T22:45:00+02:00")
+    make_bot(tg=tg, model=Model(skip), now=evening).run()
+    digest, = [m["text"] for m in tg.sent() if m["text"].startswith("🗓")]
+    assert "Прескокнати: 1 (моделот: нема факт 1)" in digest
+
+
+def test_no_digest_before_its_time(make_bot):
+    tg = FakeTelegram()
+    make_bot(tg=tg).run()
+    assert not any(m["text"].startswith("🗓") for m in tg.sent())
+
+
+def test_all_platforms_failing_is_failed_not_posted(make_bot, cfg):
+    tg = FakeTelegram()
+    bad = FakePublisher("telegram", fail=True)
+    for _ in range(cfg["run"]["max_platform_attempts"]):
+        bot = make_bot(auto=True, tg=tg, pubs=[bad])
+        bot.run()
+    assert bot.store.items["c1" * 10]["status"] == "failed"
+    assert not any(m["text"].startswith("📣") for m in tg.sent())
