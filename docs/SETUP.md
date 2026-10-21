@@ -56,7 +56,11 @@ What you will see in your private chat:
   evidence sentence copied from the article, and the model used. A `⚠️` line
   asks you to double-check the first word.
 - `⚠️ habermk грешки` when something failed (a platform, all models, the source).
-- Drafts you don't answer expire after 6 hours (stale news).
+  The same problem is reported at most once every 3 hours.
+- Drafts you don't answer expire after 6 hours (stale news). An approved post
+  that is more than 12 hours old (e.g. approved late at night) is not published.
+- When a free AI quota is used up, that model rests until the quota resets and
+  the stories wait; they are not thrown away.
 
 **Full auto later:** change Variable `APPROVAL_MODE` to `auto`. No code change.
 

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from urllib.parse import urlsplit
 
 
 @dataclass
@@ -9,6 +10,14 @@ class Article:
     url: str
     outlet: str
     title: str = ""
+
+    @property
+    def source(self) -> str:
+        """The name to credit: the outlet, or its domain if the name is missing.
+        A post must never go out without a named source (copyright Art. 52)."""
+        if self.outlet.strip():
+            return self.outlet.strip()
+        return urlsplit(self.url).netloc.lower().removeprefix("www.")
 
 
 @dataclass

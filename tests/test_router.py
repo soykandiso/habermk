@@ -71,3 +71,29 @@ def test_throttle_waits_between_calls():
     router.generate("Н", "С", "т")
     router.generate("Н", "С", "т")
     assert sleeps == [20.0]
+
+
+def test_long_rate_limit_rests_the_model_instead_of_sleeping():
+    wall = [1000.0]
+    a = Fake(ModelError("daily quota", retryable=True, retry_after=3600))
+    sleeps = []
+    router = Router([ModelSpec(id="a:m1"), ModelSpec(id="b:m2")],
+                    providers={"a": a, "b": Fake(OK, OK)}, sleep=sleeps.append,
+                    clock=lambda: 0.0, wall=lambda: wall[0])
+    assert router.generate("Н", "С", "т")[1] == "b:m2"
+    assert sleeps == [] and a.calls == 1
+    assert router.cooldown_until["a:m1"] == 4600.0
+    # still resting on the next story: not even called
+    assert router.generate("Н", "С", "т")[1] == "b:m2" and a.calls == 1
+    wall[0] = 5000.0
+    assert [s.id for s in router.available()] == ["a:m1", "b:m2"]
+
+
+def test_all_models_resting_raises_cooling():
+    from habermk.llm.router import AllModelsCooling
+
+    router = Router([ModelSpec(id="a:m1")], providers={"a": Fake()}, wall=lambda: 10.0)
+    router.cooldown_until["a:m1"] = 99.0
+    with pytest.raises(AllModelsCooling):
+        router.generate("Н", "С", "т")
+    assert router.active_cooldowns() == {"a:m1": 99.0}

@@ -188,3 +188,104 @@ def test_unsent_draft_is_resent_next_run(make_bot):
     bot2 = make_bot(tg=tg)
     bot2.run()
     assert bot2.store.items["c1" * 10]["draft_message_id"]
+
+
+# ------------------------------------------------------------ robustness
+
+def test_quota_exhausted_keeps_story_pending_without_counting_attempts(make_bot, cfg):
+    model = Model(ModelError("quota", retryable=True, retry_after=3600))
+    texts_calls = []
+    for _ in range(cfg["run"]["max_pending_runs"] + 1):
+        bot = make_bot(model=model)
+        orig = bot.get_texts
+        bot.get_texts = lambda c: texts_calls.append(c) or orig(c)
+        bot.run()
+    item = bot.store.items["c1" * 10]
+    assert item["status"] == "pending" and item["attempts"] == 0
+    assert model.calls == 1           # later runs skip the resting model entirely
+    assert len(texts_calls) == 1      # ... and don't even download articles
+    assert bot.store.data["model_cooldowns"]
+
+
+def test_one_broken_story_does_not_stop_the_others(make_bot):
+    bot = make_bot()
+    two = clusters()
+    two[1].article_count = 10
+    bot.get_clusters = lambda: two
+
+    def texts(c):
+        if c.cluster_id == "c1" * 10:
+            raise ValueError("broken html")
+        return [(c.lead, ARTICLE)]
+    bot.get_texts = texts
+    bot.run()
+    assert bot.store.items["c1" * 10]["status"] == "pending"
+    assert bot.store.items["c1" * 10]["attempts"] == 1
+    assert bot.store.items["c2" * 10]["status"] == "draft"
+    assert any("broken html" in e for e in bot.errors)
+
+
+def test_same_problem_is_alerted_once_per_cooldown(make_bot):
+    tg = FakeTelegram()
+    bad = FakePublisher("bluesky", fail=True)
+
+    def alerts():
+        return [m for m in tg.sent() if m["text"].startswith("⚠️")]
+
+    make_bot(auto=True, tg=tg, pubs=[FakePublisher("telegram"), bad]).run()
+    make_bot(auto=True, tg=tg, pubs=[FakePublisher("telegram"), bad]).run()
+    assert len(alerts()) == 1
+    later = datetime.fromisoformat("2026-10-21T15:30:00+02:00")
+    make_bot(auto=True, tg=tg, pubs=[FakePublisher("telegram"), bad], now=later).run()
+    assert len(alerts()) == 2
+
+
+def test_stale_approval_is_not_published(make_bot):
+    tg = FakeTelegram()
+    pub = FakePublisher("telegram")
+    make_bot(tg=tg, pubs=[pub]).run()                     # draft at 12:00
+    tg.press("c1" * 10, "ok")
+    next_morning = datetime.fromisoformat("2026-10-22T07:00:00+02:00")
+    bot = make_bot(tg=tg, pubs=[pub], now=next_morning)
+    bot.get_clusters = lambda: []
+    bot.run()
+    assert pub.posts == []
+    assert bot.store.items["c1" * 10]["status"] == "expired"
+
+
+def test_skip_categories(make_bot, cfg):
+    cfg["source"]["skip_categories"] = ["sport"]
+    sport = clusters()
+    sport[0].category = "sport"
+    bot = make_bot()
+    bot.get_clusters = lambda: sport
+    bot.run()
+    assert bot.store.items == {}
+
+
+def test_missing_outlet_name_falls_back_to_domain(make_bot):
+    nameless = clusters()
+    nameless[0].lead.outlet = ""
+    pub = FakePublisher("telegram")
+    bot = make_bot(auto=True, pubs=[pub])
+    bot.get_clusters = lambda: nameless
+    bot.run()
+    assert pub.posts[0]["outlet"] == "makfax.com.mk"
+
+
+def test_run_summary_is_written(make_bot, tmp_path):
+    bot = make_bot(auto=True)
+    bot.summary_path = str(tmp_path / "summary.md")
+    bot.run()
+    text = (tmp_path / "summary.md").read_text(encoding="utf-8")
+    assert "### habermk run" in text and "posted to telegram: 1" in text
+
+
+def test_logging_hides_request_urls():
+    import logging
+
+    from habermk.logs import setup_logging
+
+    setup_logging()
+    assert not logging.getLogger("httpx").isEnabledFor(logging.INFO)
+    assert logging.getLogger("habermk").isEnabledFor(logging.INFO)

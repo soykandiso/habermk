@@ -14,6 +14,7 @@ from typing import Callable
 import httpx
 
 from habermk.config import load_config
+from habermk.logs import setup_logging
 from habermk.sources.vesti import fetch_clusters
 from habermk.telegram import TelegramAPI
 
@@ -53,7 +54,7 @@ def check_facebook(env: dict, cfg: dict) -> str:
 
 
 def main() -> int:
-    logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
+    setup_logging()
     env, cfg = dict(os.environ), load_config()
     checks: list[tuple[str, Callable[[], str]]] = [("source", lambda: check_source(cfg))]
     if env.get("TELEGRAM_BOT_TOKEN"):
