@@ -108,3 +108,37 @@ def test_draft_still_sent_when_card_fails():
     tg.fail.add("sendPhoto")
     send_draft(tg, "111", "k", ITEM, card=lambda item: CARD)
     assert tg.calls[-1][0] == "sendMessage"
+
+
+def test_telegram_delete_and_link():
+    tg = FakeTelegram()
+    pub = TelegramPublisher(tg, "@badijala_klik")
+    pub.delete("42")
+    assert tg.calls[-1] == ("deleteMessage", {"chat_id": "@badijala_klik", "message_id": 42})
+    assert pub.link("42") == "https://t.me/badijala_klik/42"
+    assert TelegramPublisher(tg, "-100123").link("42") is None
+
+
+def test_bluesky_delete_and_link():
+    client = FakeBsky()
+    deleted = []
+    client.delete_post = deleted.append
+    pub = BlueskyPublisher("h", "p", client=client)
+    uri = "at://did:plc:abc123/app.bsky.feed.post/3kxyz"
+    pub.delete(uri)
+    assert deleted == [uri]
+    assert pub.link(uri) == "https://bsky.app/profile/did:plc:abc123/post/3kxyz"
+    assert pub.link("garbage") is None
+
+
+def test_facebook_delete():
+    calls = []
+
+    def handler(request):
+        calls.append((request.method, request.url.path))
+        return httpx.Response(200, json={"success": True})
+
+    pub = FacebookPublisher("1", "t", client=httpx.Client(transport=httpx.MockTransport(handler)))
+    pub.delete("1_99")
+    assert calls == [("DELETE", "/v26.0/1_99")]
+    assert pub.link("1_99") == "https://www.facebook.com/1_99"

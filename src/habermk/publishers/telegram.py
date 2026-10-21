@@ -27,3 +27,12 @@ class TelegramPublisher:
                 link_preview_options={"url": item["url"], "prefer_small_media": True},
             )
         return str(msg["message_id"])
+
+    def delete(self, post_id: str) -> None:
+        # Telegram lets a bot delete its own channel posts for 48 hours
+        self.api.call("deleteMessage", chat_id=self.channel_id, message_id=int(post_id))
+
+    def link(self, post_id: str) -> str | None:
+        if self.channel_id.startswith("@"):
+            return f"https://t.me/{self.channel_id[1:]}/{post_id}"
+        return None

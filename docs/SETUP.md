@@ -62,6 +62,23 @@ What you will see in your private chat:
 - When a free AI quota is used up, that model rests until the quota resets and
   the stories wait; they are not thrown away.
 
+**After each publication** you get `📣 ОБЈАВЕНО` with links to the posts and a
+**🗑 Избриши насекаде** button. It asks for confirmation, then deletes the post
+on Telegram, Bluesky and Facebook and tells you the result per platform. If a
+platform refuses (Telegram only allows deleting within 48 hours), you get the
+link to delete it by hand.
+
+**Commands** (type them in your chat with the bot; only you can use them):
+
+| Command | What it does |
+|---|---|
+| `/status` | mode, pause, posts today, drafts waiting, models resting |
+| `/pause` | emergency stop: no new drafts and no posts (buttons still work) |
+| `/resume` | continue after `/pause` |
+| `/help` | list of commands |
+
+The bot reads commands and button presses at its next run (within 15–30 min).
+
 **Full auto later:** change Variable `APPROVAL_MODE` to `auto`. No code change.
 
 Limits (in `config.yaml` → `run`): max 2 posts per run, 30 per day, stories

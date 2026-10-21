@@ -55,3 +55,13 @@ class BlueskyPublisher:
             text=bluesky_text(item["sentence"], item["outlet"]), embed=embed, langs=["mk"],
         )
         return resp.uri
+
+    def delete(self, post_id: str) -> None:
+        self.client.delete_post(post_id)
+
+    def link(self, post_id: str) -> str | None:
+        # at://<did>/app.bsky.feed.post/<rkey> → https://bsky.app/profile/<did>/post/<rkey>
+        parts = post_id.removeprefix("at://").split("/")
+        if len(parts) == 3 and parts[1] == "app.bsky.feed.post":
+            return f"https://bsky.app/profile/{parts[0]}/post/{parts[2]}"
+        return None
