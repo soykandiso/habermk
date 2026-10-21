@@ -29,3 +29,15 @@ jobs:
       - uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  workflows-lint:
+    # actionlint (+ shellcheck for the run: scripts) catches workflow mistakes
+    # before they reach the scheduled bot.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: pip install actionlint-py==1.7.12.25 shellcheck-py==0.11.0.1
+      - run: actionlint

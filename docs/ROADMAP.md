@@ -37,6 +37,8 @@ Status as of 21 Oct 2026. ✅ done and merged · ⏳ waiting on you · 🔜 next
   only (no history, no repository bloat); no-op saves write nothing.
 - **Secret scrubbing** on every log line, stored error and alert (bot token
   in Telegram URLs, Facebook tokens in Graph URLs, any *_TOKEN/_KEY/_PASSWORD).
+- Tests for the scripts you run (eval table, health check, Facebook token
+  helper) and actionlint + shellcheck on every workflow in CI.
 - Fixed: old button presses (Telegram won't "answer" them after a few
   minutes) aborted the processing of later presses.
 
