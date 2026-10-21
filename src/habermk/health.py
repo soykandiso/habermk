@@ -14,7 +14,7 @@ from typing import Callable
 import httpx
 
 from habermk.config import load_config
-from habermk.logs import setup_logging
+from habermk.logs import redact, setup_logging
 from habermk.sources.vesti import fetch_clusters
 from habermk.telegram import TelegramAPI
 
@@ -70,7 +70,7 @@ def main() -> int:
             log.info("OK %s", fn())
         except Exception as e:
             log.error("FAIL %s: %s", name, e)
-            failures.append(f"{name}: {type(e).__name__}: {e}"[:300])
+            failures.append(redact(f"{name}: {type(e).__name__}: {e}")[:300])
 
     if failures and env.get("TELEGRAM_BOT_TOKEN") and env.get("TELEGRAM_ADMIN_CHAT_ID"):
         try:

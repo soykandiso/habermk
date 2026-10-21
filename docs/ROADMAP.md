@@ -33,6 +33,10 @@ Status as of 21 Oct 2026. ✅ done and merged · ⏳ waiting on you · 🔜 next
   button (with confirmation).
 - **/pause, /resume, /status, /help** in your chat with the bot.
 - Daily overview at 22:30; per-run summary in the Actions job page.
+- **Encrypted state** (STATE_KEY) on the public `state` branch, one commit
+  only (no history, no repository bloat); no-op saves write nothing.
+- **Secret scrubbing** on every log line, stored error and alert (bot token
+  in Telegram URLs, Facebook tokens in Graph URLs, any *_TOKEN/_KEY/_PASSWORD).
 - Fixed: old button presses (Telegram won't "answer" them after a few
   minutes) aborted the processing of later presses.
 
@@ -40,7 +44,7 @@ Status as of 21 Oct 2026. ✅ done and merged · ⏳ waiting on you · 🔜 next
 1. Actions permission: Read and write (docs/SETUP.md, Phase 0 step 1).
 2. Secrets `GROQ_API_KEY`, `GEMINI_API_KEY` → run the **eval** workflow → score the CSV.
 3. Pick the final channel name/handle (the card says "Бадијала клик" for now).
-4. Telegram bot + channel, Bluesky app password → `BOT_ENABLED=true` → dry run → live with approval.
+4. Telegram bot + channel, Bluesky app password, `STATE_KEY` → `BOT_ENABLED=true` → dry run → live with approval.
 5. Optional: send the Time.mk email (docs/timemk-permission-email.md).
 6. Before `APPROVAL_MODE=auto`: about a week of manual approval, and a short consult with a media lawyer.
 
@@ -72,3 +76,4 @@ Status as of 21 Oct 2026. ✅ done and merged · ⏳ waiting on you · 🔜 next
 | 21 Oct | Parser keyed on `data-tv-cluster` | vesti.mk redesign; numeric IDs in the markup |
 | 21 Oct | Cards on Telegram and as the Bluesky link-card image; Facebook keeps the outlet preview | keep a clickable source link everywhere |
 | 21 Oct | Rest a model on long rate limits instead of skipping stories | free quotas (Groq ≈ 50 articles/day) |
+| 21 Oct | Encrypt the state, single-commit branch | public repo: rejected drafts and deleted posts must not stay readable |

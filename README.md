@@ -14,6 +14,9 @@ Bluesky (Facebook in Phase 2), always with the source outlet and a link.
   ✅ / ❌. One variable (`APPROVAL_MODE=auto`) turns on full auto.
 - **Never twice:** stable cluster ID, plus same-URL and similar-title checks.
   State is saved and pushed after every single post, per platform.
+- **Private where it matters:** the bot's memory on the public `state` branch
+  is encrypted (STATE_KEY) and keeps no history; secrets are scrubbed from
+  logs, stored errors and alerts.
 - **Under your control:** a 🗑 "delete everywhere" button under every post,
   `/pause` `/resume` `/status` in Telegram, a daily overview, throttled alerts.
 

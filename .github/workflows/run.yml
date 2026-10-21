@@ -57,6 +57,7 @@ jobs:
           BLUESKY_APP_PASSWORD: ${{ secrets.BLUESKY_APP_PASSWORD }}
           FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
           FB_PAGE_TOKEN: ${{ secrets.FB_PAGE_TOKEN }}
+          STATE_KEY: ${{ secrets.STATE_KEY }}
           APPROVAL_MODE: ${{ vars.APPROVAL_MODE || 'manual' }}
           DRY_RUN: ${{ inputs.dry_run || vars.DRY_RUN || '0' }}
           STATE_FILE: state-wt/state.json
