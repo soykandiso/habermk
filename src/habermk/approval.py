@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timedelta
-from typing import Any
+from typing import Any, Callable
 
 from habermk.formatting import telegram_text
 from habermk.telegram import TelegramAPI, TelegramError
@@ -32,7 +32,14 @@ def draft_text(item: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def send_draft(api: TelegramAPI, admin_chat: str, key: str, item: dict[str, Any]) -> int:
+def send_draft(api: TelegramAPI, admin_chat: str, key: str, item: dict[str, Any],
+               card: Callable[[dict], bytes] | None = None) -> int:
+    """The card (if any) first, so you approve the image too, then the text with buttons."""
+    if card:
+        try:
+            api.send_photo(admin_chat, card(item))
+        except Exception as e:  # the draft text matters more than the picture
+            log.warning("could not send draft card: %s", e)
     keyboard = {"inline_keyboard": [[
         {"text": "✅ Објави", "callback_data": f"{APPROVE}:{key}"},
         {"text": "❌ Одбиј", "callback_data": f"{REJECT}:{key}"},

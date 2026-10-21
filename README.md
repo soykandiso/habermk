@@ -37,6 +37,7 @@ cron */15 ─► read ✅/❌ presses ─► vesti.mk top stories ─► dedupe
 | `src/habermk/dedupe.py`, `state.py` | duplicates; state on the `state` branch |
 | `src/habermk/approval.py` | Telegram drafts and buttons |
 | `src/habermk/publishers/` | Telegram, Bluesky, Facebook |
+| `src/habermk/cards.py` | our 1080×1080 image card (Noto Sans, OFL) |
 | `src/habermk/main.py` | one run |
 | `scripts/` | Phase 0 probe and model evaluation, Facebook token helper |
 

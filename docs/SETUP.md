@@ -79,6 +79,17 @@ need ≥4 articles on vesti.mk and must be <8 h old.
 5. The next approved draft also appears on the Page. The weekly **healthcheck**
    warns you in Telegram if the token stops working (password change, app removed).
 
+## Phase 3: image cards (already on)
+
+Every post gets our own 1080×1080 card: the sentence, "Извор: <outlet>" and
+the date, in Noto Sans, on a dark background. It never uses the outlet's photo.
+- **Drafts** show the card above the ✅/❌ message, so you approve the picture too.
+- **Telegram**: the card is posted with the sentence, source and link as caption.
+- **Bluesky**: the card is the picture of the link card; the post still links to the article.
+- **Facebook** keeps the outlet's own link preview.
+
+Change the brand name on the card or switch cards off in `config.yaml` → `cards`.
+
 ## Switches at a glance
 
 | Variable | Values | Effect |

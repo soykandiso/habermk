@@ -44,6 +44,15 @@ platforms:
   telegram_max_chars: 4096
   facebook_graph_version: "v26.0"
 
+# Phase 3: our own 1080×1080 image card (never the outlet's photo).
+# telegram: photo with the sentence, source and link as caption.
+# bluesky: the card is the thumbnail of the link card (the link stays).
+# Facebook keeps the outlet's link preview. Drafts always show the card.
+cards:
+  enabled: true
+  brand: "Бадијала клик"   # working name; change when you pick the final one
+  platforms: [telegram, bluesky]
+
 run:
   timezone: Europe/Skopje
   window_start: "06:00"     # no drafts or posts outside this window (local time)

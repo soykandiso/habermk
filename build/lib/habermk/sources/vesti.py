@@ -1,9 +1,19 @@
-"""Parse the "топ.ВЕСТИ" story clusters from vesti.mk.
+"""Parse the top story clusters from vesti.mk.
 
-The page renders every top story twice (a mobile and a desktop layout) with
-Tailwind utility classes that change often. So we do not rely on CSS classes:
-each story is found through its stable cluster link ``/c/<id>`` and we read the
-smallest block of HTML around that link that belongs to this story only.
+Every story block carries its cluster id in ``data-tv-cluster`` (a number,
+e.g. ``255191``), and the same story is rendered more than once (desktop
+``tv-item`` and mobile ``tvm-*`` layouts, category blocks). We read each block,
+merge the copies, and keep the order of first appearance as the ranking
+("Вест #1" first).
+
+Layout seen on 21 Oct 2026::
+
+    <div class="tv-item" data-tv-cluster="255191" data-tv-cat="local">
+      <span class="tv-source">360 Степени</span> • <span>8 часа</span>
+      <h3><a class="tv-title" href="https://360stepeni.mk/...">Headline</a></h3>
+      <div class="tv-excerpt">…</div>
+      <div class="tv-sources"><a href="https://puls24.mk/...">Пулс 24</a> | …
+        • <a href="https://vesti.mk/c/255191-slug" class="tv-sources-count">31 вести</a>
 """
 from __future__ import annotations
 
@@ -16,12 +26,15 @@ from selectolax.lexbor import LexborNode as Node
 
 from habermk.models import Article, Cluster
 
-CLUSTER_HREF = re.compile(r"^/c/([A-Za-z0-9_-]{8,40})$")
-COUNT_RE = re.compile(r"(\d+)\s*вест")
+CLUSTER_ID = re.compile(r"^\d{3,12}$")
+# vesti.mk cluster page links: /c/<id>-<slug>
+CLUSTER_LINK = re.compile(r"//(?:www\.)?vesti\.mk/c/(\d{3,12})\b")
+COUNT_RE = re.compile(r"(\d+)")
 AGE_RE = re.compile(
     r"^(\d+)\s*(секунд\w*|минут\w*|час\w*|ден|дена|недел\w*|месец\w*)$"
 )
 AGE_MINUTES = {"сек": 0, "мин": 1, "час": 60, "ден": 1440, "нед": 10080, "мес": 43200}
+VESTI_HOSTS = {"vesti.mk", "www.vesti.mk"}
 
 
 class SourceLayoutError(RuntimeError):
@@ -42,65 +55,61 @@ def parse_age_minutes(text: str) -> int | None:
     return int(m.group(1)) * AGE_MINUTES[m.group(2)[:3]]
 
 
-def _card_for(link: Node) -> Node:
-    """Climb from the /c/ link to the largest ancestor holding only this story."""
-    card = link
-    while card.parent is not None and len(card.parent.css('a[href^="/c/"]')) == 1:
-        card = card.parent
-    return card
+def _external(href: str) -> bool:
+    """A link to an outlet's article (not to vesti.mk itself)."""
+    return href.startswith("http") and urlsplit(href).netloc.lower() not in VESTI_HOSTS
 
 
-def _is_homepage(href: str) -> bool:
-    parts = urlsplit(href)
-    return parts.scheme.startswith("http") and parts.path in ("", "/") and not parts.query
+def _text(node: Node | None) -> str:
+    return " ".join(node.text().split()) if node is not None else ""
 
 
-def _parse_card(card: Node, cluster_id: str, count_text: str) -> Cluster | None:
-    headline = next(
-        (a for h2 in card.css("h2") for a in h2.css('a[href^="http"]')), None
-    )
+def _parse_block(block: Node, cluster_id: str) -> Cluster | None:
+    headline = next((a for a in block.css("h2 a, h3 a")
+                     if _external(a.attributes.get("href") or "")), None)
     if headline is None:
         return None
     lead_url = clean_url(headline.attributes["href"])
-    title = headline.text(strip=True)
+    title = _text(headline)
 
-    lead_outlet = ""
     related: list[Article] = []
-    for a in card.css('a[href^="http"]'):
+    for a in block.css(".tv-sources a"):
         href = a.attributes.get("href") or ""
-        if _is_homepage(href):
-            lead_outlet = lead_outlet or a.text(strip=True)
-        elif a.attributes.get("title"):
-            url = clean_url(href)
-            if url == lead_url:
-                lead_outlet = lead_outlet or a.attributes["title"]
-            elif all(r.url != url for r in related):
-                related.append(Article(url=url, outlet=a.attributes["title"].strip()))
+        if not _external(href):
+            continue
+        url = clean_url(href)
+        if url != lead_url and all(r.url != url for r in related):
+            related.append(Article(url=url, outlet=_text(a)))
 
-    age = None
-    for span in card.css("span"):
-        age = parse_age_minutes(span.text(strip=True))
-        if age is not None:
-            break
+    age = next((m for s in block.css("span") if (m := parse_age_minutes(_text(s))) is not None),
+               None)
 
-    snippet = next((p.text(strip=True) for p in card.css("p") if p.text(strip=True)), "")
-    m = COUNT_RE.search(count_text)
+    # "31 вести" (desktop) or "+ 31" (mobile), both linking to the cluster page
+    count = 0
+    for a in block.css("a"):
+        if CLUSTER_LINK.search(a.attributes.get("href") or ""):
+            m = COUNT_RE.search(_text(a))
+            count = max(count, int(m.group(1)) if m else 0)
+
     return Cluster(
         cluster_id=cluster_id,
         rank=0,
         title=title,
-        lead=Article(url=lead_url, outlet=lead_outlet, title=title),
+        lead=Article(url=lead_url, outlet=_text(block.css_first(".tv-source, .tvm-meta-source")),
+                     title=title),
         related=related,
-        article_count=int(m.group(1)) if m else 0,
+        article_count=count,
         age_minutes=age,
-        snippet=snippet,
+        snippet=_text(block.css_first(".tv-excerpt")),
+        category=block.attributes.get("data-tv-cat") or "",
     )
 
 
 def _merge(a: Cluster, b: Cluster) -> Cluster:
-    """Combine the mobile and desktop copies of the same story."""
+    """Combine two copies of the same story (desktop / mobile / category block)."""
     a.lead.outlet = a.lead.outlet or b.lead.outlet
     a.snippet = a.snippet or b.snippet
+    a.category = a.category or b.category
     a.age_minutes = a.age_minutes if a.age_minutes is not None else b.age_minutes
     a.article_count = max(a.article_count, b.article_count)
     known = {r.url for r in a.related} | {a.lead.url}
@@ -109,25 +118,24 @@ def _merge(a: Cluster, b: Cluster) -> Cluster:
 
 
 def parse_clusters(html: str) -> list[Cluster]:
-    """Return the top-story clusters in page order (rank 0 = first)."""
+    """Return the story clusters in page order (rank 0 = first)."""
     tree = HTMLParser(html)
     clusters: dict[str, Cluster] = {}
-    for link in tree.css('a[href^="/c/"]'):
-        m = CLUSTER_HREF.match(link.attributes.get("href") or "")
-        if not m:
+    for block in tree.css("[data-tv-cluster]"):
+        cid = (block.attributes.get("data-tv-cluster") or "").strip()
+        if not CLUSTER_ID.match(cid):
             continue
-        parsed = _parse_card(_card_for(link), m.group(1), link.text(strip=True))
+        parsed = _parse_block(block, cid)
         if parsed is None:
             continue
-        cid = parsed.cluster_id
         clusters[cid] = _merge(clusters[cid], parsed) if cid in clusters else parsed
 
-    # Second, independent check: if the raw HTML still has cluster links but
-    # the card parser found none, the layout changed. Fail loudly.
-    raw_ids = set(re.findall(r'href="/c/([A-Za-z0-9_-]{8,40})"', html))
+    # Second, independent check: if the raw HTML still has cluster markers but
+    # nothing was parsed, the layout changed. Fail loudly.
+    raw_ids = set(re.findall(r'data-tv-cluster="(\d+)"', html)) | set(CLUSTER_LINK.findall(html))
     if raw_ids and not clusters:
         raise SourceLayoutError(
-            f"vesti.mk: {len(raw_ids)} cluster links in HTML but 0 parsed cards"
+            f"vesti.mk: {len(raw_ids)} cluster ids in HTML but 0 parsed stories"
         )
 
     result = list(clusters.values())
@@ -143,5 +151,20 @@ def fetch_clusters(url: str, user_agent: str, timeout: float = 30) -> list[Clust
     resp.raise_for_status()
     clusters = parse_clusters(resp.text)
     if not clusters:
-        raise SourceLayoutError("vesti.mk: no clusters found on the page")
+        raise SourceLayoutError(f"vesti.mk: no clusters found on the page ({describe_page(resp)})")
     return clusters
+
+
+def describe_page(resp: httpx.Response) -> str:
+    """What we actually got, so a failure can be diagnosed from the log alone."""
+    html = resp.text
+    title = re.search(r"<title[^>]*>(.*?)</title>", html, re.S | re.I)
+    body = re.sub(r"<(script|style)\b.*?</\1>|<[^>]+>", " ", html, flags=re.S | re.I)
+    return (
+        f"final url {resp.url}, status {resp.status_code}, {len(html)} chars, "
+        f"server {resp.headers.get('server', '?')}, "
+        f"title {title.group(1).strip()[:80] if title else '-'!r}, "
+        f"'data-tv-cluster' occurrences {html.count('data-tv-cluster')}, "
+        f"'/c/' occurrences {html.count('/c/')}, "
+        f"text start {' '.join(body.split())[:300]!r}"
+    )

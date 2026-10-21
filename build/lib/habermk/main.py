@@ -21,6 +21,7 @@ from zoneinfo import ZoneInfo
 import httpx
 
 from habermk import approval
+from habermk.cards import card_maker
 from habermk.config import load_config
 from habermk.dedupe import duplicate_of
 from habermk.extract import best_texts
@@ -48,6 +49,7 @@ class Bot:
     dry_run: bool = False
     get_clusters: Callable[[], list[Cluster]] | None = None
     get_texts: Callable[[Cluster], list[tuple[Any, str]]] | None = None
+    card: Callable[[dict], bytes] | None = None   # image card shown with drafts
     now: Callable[[], datetime] = lambda: datetime.now(ZoneInfo("Europe/Skopje"))
     errors: list[str] = field(default_factory=list)
 
@@ -92,7 +94,8 @@ class Bot:
         if not self.telegram:
             return
         try:
-            item["draft_message_id"] = approval.send_draft(self.telegram, self.admin_chat, key, item)
+            item["draft_message_id"] = approval.send_draft(self.telegram, self.admin_chat, key,
+                                                           item, card=self.card)
         except TelegramError as e:
             self.error(f"telegram draft {key}: {e}")
 
@@ -261,6 +264,7 @@ def build(env: dict[str, str] | None = None) -> Bot:
         dry_run=env.get("DRY_RUN", "0").strip().lower() in ("1", "true", "yes"),
         get_clusters=lambda: fetch_clusters(src["url"], src["user_agent"]),
         get_texts=lambda c: best_texts(c, cfg, http, want=want),
+        card=card_maker(cfg),
         now=lambda: datetime.now(ZoneInfo(cfg["run"]["timezone"])),
     )
 
