@@ -12,6 +12,8 @@ on:
     branches: [main]
     paths:
       - "src/habermk/sources/**"
+      - "src/habermk/config.py"
+      - "config.yaml"
       - "scripts/probe_sources.py"
       - ".github/workflows/probe.yml"
 
@@ -28,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Check out the probe branch
         run: |
           git config --global user.name "habermk-bot"
@@ -44,7 +46,7 @@ jobs:
         run: |
           n=$(cat probe-wt/snapshots.jsonl 2>/dev/null | wc -l)
           echo "n=$n" >> "$GITHUB_OUTPUT"
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         if: steps.count.outputs.n < 120
         with:
           python-version: "3.12"
