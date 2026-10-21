@@ -320,7 +320,8 @@ class Bot:
         if command == "/pause":
             data["paused"] = now.isoformat()
             self.save("pause", push=True)
-            return "⏸ Паузирано: нема нови нацрти ни објави. Копчињата и бришењето работат.\n/resume за продолжување."
+            return ("⏸ Паузирано: нема нови нацрти ни објави. Копчињата и бришењето работат.\n"
+                    "/resume за продолжување.")
         if command == "/resume":
             data.pop("paused", None)
             self.save("resume", push=True)
@@ -336,10 +337,11 @@ class Bot:
         items = self.store.items.values()
         count = Counter(it["status"] for it in items)
         mode = "автоматски" if self.auto else "рачно одобрување"
+        paused = self.store.data.get("paused")
         lines = [
             "🤖 habermk",
             f"Режим: {mode}{' (пробно, без објавување)' if self.dry_run else ''}",
-            f"Пауза: {'да, од ' + data_time(self.store.data['paused']) if self.store.data.get('paused') else 'не'}",
+            f"Пауза: {'да, од ' + data_time(paused) if paused else 'не'}",
             f"Денес објавени: {self.posts_today(now)} / {self.run_cfg['max_posts_per_day']}",
             f"Чекаат одобрување: {count['draft']} · одобрени во ред: {count['approved']}",
             f"Платформи: {', '.join(p.name for p in self.publishers) or 'нема'}",

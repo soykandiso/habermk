@@ -201,7 +201,7 @@ def test_quota_exhausted_keeps_story_pending_without_counting_attempts(make_bot,
     for _ in range(cfg["run"]["max_pending_runs"] + 1):
         bot = make_bot(model=model)
         orig = bot.get_texts
-        bot.get_texts = lambda c: texts_calls.append(c) or orig(c)
+        bot.get_texts = lambda c, orig=orig: texts_calls.append(c) or orig(c)
         bot.run()
     item = bot.store.items["c1" * 10]
     assert item["status"] == "pending" and item["attempts"] == 0
