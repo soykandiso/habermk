@@ -1,6 +1,6 @@
 # Full-text extraction check
 
-- Run: 2026-10-21T20:48+00:00
+- Run: 2026-10-21T20:52+00:00
 - Stories with usable text (≥250 chars from one of the first 3 articles): **10 of 10**
 
 | rank | outlet | host | chars | ok | text start |
