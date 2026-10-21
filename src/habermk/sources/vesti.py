@@ -143,5 +143,20 @@ def fetch_clusters(url: str, user_agent: str, timeout: float = 30) -> list[Clust
     resp.raise_for_status()
     clusters = parse_clusters(resp.text)
     if not clusters:
-        raise SourceLayoutError("vesti.mk: no clusters found on the page")
+        raise SourceLayoutError(f"vesti.mk: no clusters found on the page ({describe_page(resp)})")
     return clusters
+
+
+def describe_page(resp: httpx.Response) -> str:
+    """What we actually got, so a failure can be diagnosed from the log alone."""
+    html = resp.text
+    title = re.search(r"<title[^>]*>(.*?)</title>", html, re.S | re.I)
+    hrefs = re.findall(r'href="(/[a-z]+)/', html)
+    common = sorted({h: hrefs.count(h) for h in hrefs}.items(), key=lambda kv: -kv[1])[:6]
+    body = re.sub(r"<(script|style)\b.*?</\1>|<[^>]+>", " ", html, flags=re.S | re.I)
+    return (
+        f"final url {resp.url}, status {resp.status_code}, {len(html)} chars, "
+        f"server {resp.headers.get('server', '?')}, title {title.group(1).strip()[:80] if title else '-'!r}, "
+        f"'/c/' occurrences {html.count('/c/')}, top link paths {common}, "
+        f"text start {' '.join(body.split())[:300]!r}"
+    )

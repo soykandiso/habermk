@@ -54,5 +54,18 @@ def test_age(text, minutes):
     assert parse_age_minutes(text) == minutes
 
 
+def test_describe_page_for_diagnosis():
+    import httpx
+
+    from habermk.sources.vesti import describe_page
+
+    resp = httpx.Response(200, text="<html><title>Just a moment...</title><body>"
+                          "<a href='/x'>a</a><script>var x=1</script>Checking</body></html>",
+                          request=httpx.Request("GET", "https://vesti.mk/"))
+    text = describe_page(resp)
+    assert "Just a moment..." in text and "'/c/' occurrences 0" in text and "Checking" in text
+    assert "var x" not in text
+
+
 def test_clean_url_keeps_real_query():
     assert clean_url("https://a.mk/x?id=5&utm_source=vesti.mk#top") == "https://a.mk/x?id=5"
