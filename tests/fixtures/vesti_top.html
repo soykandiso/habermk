@@ -1,79 +1,251 @@
 <!DOCTYPE html>
-<html lang="mk">
-<head><meta charset="utf-8"><title>Вести.мк</title></head>
+<html lang="mk"><head><meta charset="utf-8"><title>VESTi.mk - Сите вести на еден клик</title></head>
 <body>
-<!-- Structure copied from the real vesti.mk "топ.ВЕСТИ" cards (29 Sep 2026);
-     texts shortened. Every story appears twice: mobile layout, then desktop. -->
-<nav><a href="/category/makedonija">Македонија</a><a href="/latest">најнови.ВЕСТИ</a></nav>
-<h3>топ.ВЕСТИ</h3>
-<main class="grid md:hidden px-4 grid-cols-1 gap-4">
-  <div class="relative">
-    <div class="flex items-center justify-between text-sm mt-3">
-      <a href="https://makfax.com.mk" target="_blank" class="dark:text-secondary-dark">Макфакс</a>
-      <span>2 часа</span>
+<!-- Cut from the live vesti.mk home page on 21 Oct 2026: trending list, the
+     first three stories of the top section (desktop), their mobile copies and
+     one "latest" entry (no cluster). Images and scripts removed. -->
+<div class="tvm-trending" id="tvm-trending">
+                <h2 class="tvm-trending-head tvm-exo"><span class="tvm-trending-help" tabindex="0">
+                    <span>Во тренд</span>
+                    <span class="tvm-trending-i" aria-hidden="true">i</span>
+                    <span class="tvm-trending-tip" role="tooltip">
+                        <span class="tvm-tip-title">Што значат знаците</span>
+                                <span class="tvm-tip-row"><span class="tvm-tip-ic"><span class="tvm-trending-move tvm-trending-move--same"></span></span><span>Позицијата е непроменета</span></span>
+                                <span class="tvm-tip-row"><span class="tvm-tip-ic"><span class="tvm-trending-move tvm-trending-move--up"></span></span><span>Се искачува на листата</span></span>
+                                <span class="tvm-tip-row"><span class="tvm-tip-ic"><span class="tvm-trending-move tvm-trending-move--down"></span></span><span>Паѓа на листата</span></span>
+                    </span>
+                </span></h2>
+                <ol class="tvm-trending-list">
+                                                                    <li>
+                            <a href="https://vesti.mk/c/255243-dik-radichevski-i-jahiji-vo-vtoriot-krug-za" target="_blank" rel="noopener" class="tvm-trending-item">
+                                <span class="tvm-trending-rank">
+                                    <span class="tvm-trending-num">1</span>
+                                    <span class="tvm-trending-move tvm-trending-move--up" title="▲ +2 позиции"></span>
+                                </span>
+                                <span class="tvm-trending-title">Втор круг за градоначалник на Брвеница</span>
+                            </a>
+                        </li>
+                                                                    <li>
+                            <a href="https://vesti.mk/c/256803-kremlj-podgotveni-sme-da-pregovarame-so-ukraina-za" target="_blank" rel="noopener" class="tvm-trending-item">
+                                <span class="tvm-trending-rank">
+                                    <span class="tvm-trending-num">2</span>
+                                    <span class="tvm-trending-move tvm-trending-move--down" title="▼ −1 позиции"></span>
+                                </span>
+                                <span class="tvm-trending-title">Москва најавува преговори со Украина за мир</span>
+                            </a>
+                        </li>
+                                                                    <li>
+                            <a href="https://vesti.mk/c/253718-sudenjeto-za-puls-prodolzhuva-so-vkrsteno-ispituvanje-na" target="_blank" rel="noopener" class="tvm-trending-item">
+                                <span class="tvm-trending-rank">
+                                    <span class="tvm-trending-num">3</span>
+                                    <span class="tvm-trending-move tvm-trending-move--down" title="▼ −1 позиции"></span>
+                                </span>
+                                <span class="tvm-trending-title">Судењето за „Пулс“ со вкрстено испитување</span>
+                            </a>
+                        </li>
+                                                                    <li>
+                            <a href="https://vesti.mk/c/255191-klekovski-se-vakcinirav-protiv-sezonski-grip-vakcinacijata-e" target="_blank" rel="noopener" class="tvm-trending-item">
+                                <span class="tvm-trending-rank">
+                                    <span class="tvm-trending-num">4</span>
+                                    <span class="tvm-trending-move tvm-trending-move--same" title="● иста позиција"></span>
+                                </span>
+                                <span class="tvm-trending-title">Почна имунизацијата против сезонски грип</span>
+                            </a>
+                        </li>
+                                                                    <li>
+                            <a href="https://vesti.mk/c/255160-potraga-po-ischeznato-lice-vo-gostivarsko-ekipi-na" target="_blank" rel="noopener" class="tvm-trending-item">
+                                <span class="tvm-trending-rank">
+                                    <span class="tvm-trending-num">5</span>
+                                    <span class="tvm-trending-move tvm-trending-move--up" title="● ново во тренд"></span>
+                                </span>
+                                <span class="tvm-trending-title">Потрага по исчезнато лице во Вардар</span>
+                            </a>
+                        </li>
+                                    </ol>
+            </div>
+<section class="tv-section" id="tv-top-vesti">
+<div class="tv-item tv-item--banner tv-featured-lead" data-tv-cluster="255191" data-tv-cat="local">
+        <div class="tv-thumb">
+            <a href="https://360stepeni.mk/pochna-imunizatsijata-protiv-sezonski-grip-klekovski-se-vaktsinira-prv-za-da-dade-lichen-primer" target="_blank" rel="noopener" class="tv-thumb-link" aria-label="Почна имунизацијата против сезонски грип, Клековски се вакцинира прв за да даде личен пример">
+                                    
+                            </a>
+        </div>
+                    <div class="tv-featured-badge">
+                <svg viewBox="0 0 8 8" fill="currentColor"><circle cx="4" cy="4" r="4"></circle></svg>
+                <span>Вест #1</span>
+            </div>
+        <div class="tv-body">
+            <div class="tv-meta">
+                                    
+                                    <span class="tv-source">360 Степени</span>
+                                <span>•</span>
+                <span>8 часа</span>
+                            </div>
+            <h3 class="tv-title-h">
+                <a href="https://360stepeni.mk/pochna-imunizatsijata-protiv-sezonski-grip-klekovski-se-vaktsinira-prv-za-da-dade-lichen-primer" target="_blank" rel="noopener" class="tv-title">
+                    Почна имунизацијата против сезонски грип, Клековски се вакцинира прв за да даде личен пример
+                </a>
+            </h3>
+                            <div class="tv-excerpt">Министерот за здравство Сашо Клековски изјави дека се пријавил за имунизација против сезонскиот грип како хронично болен,...</div>
+            <div class="tv-sources">
+                                                        <a href="https://puls24.mk/%d0%ba%d0%bb%d0%b5%d0%ba%d0%be%d0%b2%d1%81%d0%ba%d0%b8-%d1%81%d0%b5-%d0%b2%d0%b0%d0%ba%d1%86%d0%b8%d0%bd%d0%b8%d1%80%d0%b0-%d0%bf%d1%80%d0%be%d1%82%d0%b8%d0%b2-%d1%81%d0%b5%d0%b7%d0%be%d0%bd%d1%81" target="_blank" rel="noopener">Пулс 24</a>
+                                                            <span> | </span>
+                                        <a href="https://novamakedonija.com.mk/makedonija/pochna-vakcinacijata-protiv-sezonski-grip-klekovski-se-vakcinirashe-megju-prvite" target="_blank" rel="noopener">Нова Македонија</a>
+                                                            <span> | </span>
+                                        <a href="https://racin.mk/makedonija/klekovski-se-vakczinirashe-protiv-grip-uveruva-deka-vakczinite-shtitat" target="_blank" rel="noopener">Рацин</a>
+                                                            <span> | </span>
+                                        <a href="https://mrt.com.mk/node/150001" target="_blank" rel="noopener">МТВ 1</a>
+                                                            <span> | </span>
+                                        <a href="https://vesti.alfa.mk/pochna-vakcinacijata-protiv-sezonski-grip-najdobra-merka-za-prevencija-veli-klekovski-koj-se-vakcinirashe-megju-prvite" target="_blank" rel="noopener">Алфа</a>
+                    <span> • <a href="https://vesti.mk/c/255191-klekovski-se-vakcinirav-protiv-sezonski-grip-vakcinacijata-e" target="_blank" rel="noopener" class="tv-sources-count">31 вести</a></span>
+                            </div>
+        </div>
     </div>
-    <div class="relative w-full h-[400px] rounded-lg overflow-hidden">
-      <img alt="Автоматски пушки" src="https://api.statistika.ai/assets/images/no-photo-400.png">
-      <div class="absolute bottom-0 left-0 right-0 p-4">
-        <h2><a href="https://makfax.com.mk/crna-hronika/avtomatski-pushki-otkrieni-vo-skopje/?utm_source=vesti.mk" target="_blank">(Фото/Видео) Автоматски пушки, снајпери и муниција откриени во Скопје</a></h2>
-      </div>
+<div class="tv-item tv-item--small tv-featured-cell" data-tv-cluster="255160" data-tv-cat="local">
+        <div class="tv-thumb">
+            <a href="https://360stepeni.mk/dzs-potraga-po-ischeznato-litse-vo-rekata-vardar-vo-gostivarsko" target="_blank" rel="noopener" class="tv-thumb-link" aria-label="ДЗС: Потрага по исчезнато лице во реката Вардар во Гостиварско">
+                                    
+                            </a>
+        </div>
+        <div class="tv-body">
+                            <div class="tv-featured-tag">Македонија</div>
+            <div class="tv-meta">
+                                    
+                                    <span class="tv-source">360 Степени</span>
+                                <span>•</span>
+                <span>8 часа</span>
+                            </div>
+            <h3 class="tv-title-h">
+                <a href="https://360stepeni.mk/dzs-potraga-po-ischeznato-litse-vo-rekata-vardar-vo-gostivarsko" target="_blank" rel="noopener" class="tv-title">
+                    ДЗС: Потрага по исчезнато лице во реката Вардар во Гостиварско
+                </a>
+            </h3>
+                            <div class="tv-excerpt">Од ДЗС порачуваат дека и покрај спецификите на речното корито и условите на теренот, екипите ќе останат...</div>
+            <div class="tv-sources">
+                                                        <a href="https://vesti.alfa.mk/dzs-potraga-po-ischeznatoto-lice-kraj-vardar-vo-gostivarsko" target="_blank" rel="noopener">Алфа</a>
+                                                            <span> | </span>
+                                        <a href="https://telma.com.mk/2026/10/21/timovi-na-direkczijata-za-zashtita-i-spasuvane-tragaat-po-ischeznato-licze-vo-vardar" target="_blank" rel="noopener">Телма</a>
+                                                            <span> | </span>
+                                        <a href="https://vazno.mk/mkd/potraga-po-isceznatoto-lice-kraj-vard" target="_blank" rel="noopener">Важно</a>
+                                                            <span> | </span>
+                                        <a href="https://nezavisen.mk/dzs-potraga-po-ischeznatoto-lice-kraj-vardar-vo-gostivarsko" target="_blank" rel="noopener">Независен</a>
+                                                            <span> | </span>
+                                        <a href="https://denesmagazin.mk/dzs-potraga-po-ischeznatoto-litse-kraj-vardar-vo-gostivarsko" target="_blank" rel="noopener">Денес Магазин</a>
+                    <span> • <a href="https://vesti.mk/c/255160-potraga-po-ischeznato-lice-vo-gostivarsko-ekipi-na" target="_blank" rel="noopener" class="tv-sources-count">29 вести</a></span>
+                            </div>
+        </div>
     </div>
-    <p>Против Б.А. (24) и Е.С. (30) е поднесена кривична пријава за „неовластено изработување, држење, посредување и тргување со оружје или експлозивни материи“.</p>
-    <div>
-      <a href="https://makfax.com.mk/crna-hronika/avtomatski-pushki-otkrieni-vo-skopje/?utm_source=vesti.mk" target="_blank" title="Макфакс">Макфакс</a><span>|</span>
-      <a href="https://mk.tv21.tv/suzbiena-kriminalna-grupa-od-skopje/?utm_source=vesti.mk" target="_blank" title="ТВ 21">ТВ 21</a><span>|</span>
-      <a href="https://denesmagazin.mk/poprechena-aktivnost/?utm_source=vesti.mk" target="_blank" title="Денес Магазин">Денес Магазин</a>
-      <span>•</span><a href="/c/yslP7aABy7_6fWyWFLX2">46 вести</a>
+<div class="tv-item tv-featured-cell" data-tv-cluster="256235" data-tv-cat="">
+        <div class="tv-thumb">
+            <a href="https://telma.com.mk/2026/10/21/sdsm-odluka-na-ustavniot-sud-za-rezoluczijata-vednash-po-najavite-na-miczkoski-i-nikolovski-za-nosene-ekonomski-rabotniczi" target="_blank" rel="noopener" class="tv-thumb-link" aria-label="СДСМ: Одлука на Уставниот суд за Резолуцијата веднаш по најавите на Мицкоски и Николовски за носење „економски работници“">
+                                    
+                            </a>
+        </div>
+        <div class="tv-body">
+            <div class="tv-meta">
+                                    
+                                    <span class="tv-source">Телма</span>
+                                <span>•</span>
+                <span>6 часа</span>
+                            </div>
+            <h3 class="tv-title-h">
+                <a href="https://telma.com.mk/2026/10/21/sdsm-odluka-na-ustavniot-sud-za-rezoluczijata-vednash-po-najavite-na-miczkoski-i-nikolovski-za-nosene-ekonomski-rabotniczi" target="_blank" rel="noopener" class="tv-title">
+                    СДСМ: Одлука на Уставниот суд за Резолуцијата веднаш по најавите на Мицкоски и Николовски за носење „економски работници“
+                </a>
+            </h3>
+                            <div class="tv-excerpt">Александар Николовски најави 50.000 нови „економски работници“ годишно. Мицкоски ја дуплираше бројката, рече над 100.000, па дури направи им кажа на граѓаните или многудетни семејс...</div>
+            <div class="tv-sources">
+                                                        <a href="https://360stepeni.mk/sdsm-odluka-na-ustaven-za-rezolutsijata-za-migrantite-doaga-vednash-po-najavite-na-mitskoski-i-nikoloski-za-nosene-ekonomski-rabotnitsi" target="_blank" rel="noopener">360 Степени</a>
+                                                            <span> | </span>
+                                        <a href="https://nezavisen.mk/ustavniot-sud-ja-otfrli-inicijativata-na-sdsm-za-rezolucijata-za-migracijata" target="_blank" rel="noopener">Независен</a>
+                                                            <span> | </span>
+                                        <a href="https://vesti.alfa.mk/ustavniot-sud-ja-otfrli-inicijativata-na-sdsm-za-rezolucijata-za-migracijata" target="_blank" rel="noopener">Алфа</a>
+                                                            <span> | </span>
+                                        <a href="https://plusinfo.mk/otfrena-inicijativata-na-sdsm-za-politikite-kon-nelegalnata-migracija-ustavniot-sud-ne-najde-osnova-da-ja-razgleduva" target="_blank" rel="noopener">+Инфо</a>
+                                                            <span> | </span>
+                                        <a href="https://fokus.mk/ustaven-ja-otfrli-initsijativata-na-sdsm-za-rezolutsijata-za-migratsijata" target="_blank" rel="noopener">Фокус</a>
+                    <span> • <a href="https://vesti.mk/c/256235-ustaven-ja-otfrli-inicijativata-na-sdsm-za-politikite" target="_blank" rel="noopener" class="tv-sources-count">17 вести</a></span>
+                            </div>
+        </div>
     </div>
-  </div>
-  <div class="relative">
-    <div class="flex items-center justify-between text-sm mt-3">
-      <a href="https://24.mk/" target="_blank">24 Вести</a>
-      <span>35 минути</span>
+</section>
+<div class="tvm-feed">
+<div class="tvm-banner" data-tv-cluster="255191" data-tv-cat="local">
+                    
+        <a class="tvm-banner-overlay" href="https://360stepeni.mk/pochna-imunizatsijata-protiv-sezonski-grip-klekovski-se-vaktsinira-prv-za-da-dade-lichen-primer" target="_blank" rel="noopener" aria-label="Почна имунизацијата против сезонски грип, Клековски се вакцинира прв за да даде личен пример"></a>
+                    <div class="tvm-banner-cat">Македонија</div>
+                <div class="tvm-banner-content">
+            <h2 class="tvm-banner-title"><a href="https://360stepeni.mk/pochna-imunizatsijata-protiv-sezonski-grip-klekovski-se-vaktsinira-prv-za-da-dade-lichen-primer" target="_blank" rel="noopener">Почна имунизацијата против сезонски грип, Клековски се вакцинира прв за да даде личен пример</a></h2>
+            <div class="tvm-meta tvm-meta--banner">
+                <div class="tvm-meta-left">
+                    <span class="tvm-meta-source">
+                                                    
+                                                360 Степени
+                    </span>
+                    <span>•</span>
+                    <span>8 часа</span>
+                </div>
+                                    <a href="https://vesti.mk/c/255191-klekovski-se-vakcinirav-protiv-sezonski-grip-vakcinacijata-e" target="_blank" rel="noopener" class="tvm-plus tvm-plus--blue">+ 31</a>
+                            </div>
+        </div>
     </div>
-    <h2><a href="https://24.mk/details/vladata-ja-odobri-odlukata?utm_source=vesti.mk&amp;utm_medium=web" target="_blank">Владата ја донесе одлуката – ова се промените</a></h2>
-    <p>Владата на денешната седница усвои измени на уредбата.</p>
-    <div>
-      <a href="https://24.mk/details/vladata-ja-odobri-odlukata?utm_source=vesti.mk&amp;utm_medium=web" title="24 Вести">24 Вести</a><span>|</span>
-      <a href="https://sdk.mk/index.php/makedonija/vladata-odluka/?utm_source=vesti.mk" title="СДК">СДК</a>
-      <span>•</span><a href="/c/Ab3dEf6hIj9kLmNoPq12">12 вести</a>
+<div class="tvm-small" data-tv-cluster="255160" data-tv-cat="local">
+        <div class="tvm-small-thumb">
+            <a href="https://360stepeni.mk/dzs-potraga-po-ischeznato-litse-vo-rekata-vardar-vo-gostivarsko" target="_blank" rel="noopener" aria-hidden="true" tabindex="-1">
+                                    
+                            </a>
+        </div>
+        <div class="tvm-small-body">
+            <h2 class="tvm-small-title"><a href="https://360stepeni.mk/dzs-potraga-po-ischeznato-litse-vo-rekata-vardar-vo-gostivarsko" target="_blank" rel="noopener">ДЗС: Потрага по исчезнато лице во реката Вардар во Гостиварско</a></h2>
+            <div class="tvm-meta">
+                <div class="tvm-meta-left">
+                    <span class="tvm-meta-source">
+                                                    
+                                                360 Степени
+                    </span>
+                    <span>•</span>
+                    <span>8 часа</span>
+                </div>
+                                    <a href="https://vesti.mk/c/255160-potraga-po-ischeznato-lice-vo-gostivarsko-ekipi-na" target="_blank" rel="noopener" class="tvm-plus">+ 29</a>
+                            </div>
+        </div>
     </div>
-  </div>
-  <div class="relative">
-    <div class="flex items-center justify-between text-sm mt-3">
-      <a href="https://vecer.press/" target="_blank">Вечер</a>
-      <span>1 ден</span>
+<div class="tvm-big " data-tv-cluster="256235" data-tv-cat="">
+        <div>
+            <a href="https://telma.com.mk/2026/10/21/sdsm-odluka-na-ustavniot-sud-za-rezoluczijata-vednash-po-najavite-na-miczkoski-i-nikolovski-za-nosene-ekonomski-rabotniczi" target="_blank" rel="noopener" class="tvm-big-thumb" aria-hidden="true" tabindex="-1">
+                                    
+                            </a>
+        </div>
+        <h2 class="tvm-big-title"><a href="https://telma.com.mk/2026/10/21/sdsm-odluka-na-ustavniot-sud-za-rezoluczijata-vednash-po-najavite-na-miczkoski-i-nikolovski-za-nosene-ekonomski-rabotniczi" target="_blank" rel="noopener">СДСМ: Одлука на Уставниот суд за Резолуцијата веднаш по најавите на Мицкоски и Николовски за носење „економски работници“</a></h2>
+        <div class="tvm-meta">
+            <div class="tvm-meta-left">
+                <span class="tvm-meta-source">
+                                            
+                                        Телма
+                </span>
+                <span>•</span>
+                <span>6 часа</span>
+            </div>
+                            <a href="https://vesti.mk/c/256235-ustaven-ja-otfrli-inicijativata-na-sdsm-za-politikite" target="_blank" rel="noopener" class="tvm-plus">+ 17</a>
+                    </div>
     </div>
-    <h2><a href="https://vecer.press/poznat-pejach/?utm_source=vesti.mk" target="_blank">Познат пејач шокираше со изјавата</a></h2>
-    <div>
-      <a href="https://vecer.press/poznat-pejach/?utm_source=vesti.mk" title="Вечер">Вечер</a>
-      <span>•</span><a href="/c/ZZtop_story-0000001">3 вести</a>
-    </div>
-  </div>
-</main>
-<main class="hidden md:grid grid-cols-3 gap-6">
-  <div class="col-span-2">
-    <div class="relative w-full h-[400px] rounded-lg overflow-hidden">
-      <h2><a href="https://makfax.com.mk/crna-hronika/avtomatski-pushki-otkrieni-vo-skopje/?utm_source=vesti.mk" target="_blank">(Фото/Видео) Автоматски пушки, снајпери и муниција откриени во Скопје</a></h2>
-    </div>
-    <div>
-      <a href="https://makfax.com.mk/crna-hronika/avtomatski-pushki-otkrieni-vo-skopje/?utm_source=vesti.mk" title="Макфакс">Макфакс</a><span>|</span>
-      <a href="https://vesti.alfa.mk/ojo-gokk-otvori-istraga/?utm_source=vesti.mk" title="Алфа">Алфа</a><span>|</span>
-      <a href="https://denesen.mk/detali-od-mvr/?utm_source=vesti.mk" title="Денешен">Денешен</a>
-      <span>•</span><a href="/c/yslP7aABy7_6fWyWFLX2">46 вести</a>
-    </div>
-  </div>
-  <div>
-    <h2><a href="https://24.mk/details/vladata-ja-odobri-odlukata?utm_source=vesti.mk&amp;utm_medium=web" target="_blank">Владата ја донесе одлуката – ова се промените</a></h2>
-    <div>
-      <a href="https://sdk.mk/index.php/makedonija/vladata-odluka/?utm_source=vesti.mk" title="СДК">СДК</a>
-      <span>•</span><a href="/c/Ab3dEf6hIj9kLmNoPq12">13 вести</a>
-    </div>
-  </div>
-  <div>
-    <h2><a href="https://vecer.press/poznat-pejach/?utm_source=vesti.mk" target="_blank">Познат пејач шокираше со изјавата</a></h2>
-    <div><span>•</span><a href="/c/ZZtop_story-0000001">3 вести</a></div>
-  </div>
-</main>
-</body>
-</html>
+</div>
+<div class="tvm-latest" id="tvm-latest">
+                            <h2 class="tvm-latest-head tvm-exo">
+                                                                    <span class="tvm-blue">Најнови вести</span>
+                                                            </h2>
+                            <ol class="tvm-latest-list">
+                                                                    <li>
+                                        <div class="tvm-latest-dot"></div>
+                                        <h2 class="tvm-latest-title"><a href="https://denar.mk/lekar-so-simulacija-gi-prikazha-mozhnite-opasnosti-od-pukanjeto-na-vratot" target="_blank" rel="noopener">Лекар со симулација ги прикажа можните опасности од крцкањето на вратот (ВИДЕО)</a></h2>
+                                        <div class="tvm-latest-meta">
+                                            <span class="tvm-meta-source">
+                                                                                                    
+                                                                                                Денар
+                                            </span>
+                                            <span>•</span>
+                                            <span>1 минута</span>
+                                        </div>
+                                    </li></ol>
+                        </div>
+</body></html>
