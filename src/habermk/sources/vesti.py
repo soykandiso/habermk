@@ -16,7 +16,13 @@ from selectolax.lexbor import LexborNode as Node
 
 from habermk.models import Article, Cluster
 
-CLUSTER_HREF = re.compile(r"^/c/([A-Za-z0-9_-]{8,40})$")
+# "/c/<id>", also absolute ("https://vesti.mk/c/<id>") and with a slug or slash.
+CLUSTER_HREF = re.compile(
+    r"^(?:https?://(?:www\.)?vesti\.mk)?/c/([A-Za-z0-9_-]{8,40})(?:/[^?#]*)?(?:[?#].*)?$"
+)
+RAW_CLUSTER = re.compile(
+    r"""href=["'](?:https?://(?:www\.)?vesti\.mk)?/c/([A-Za-z0-9_-]{8,40})"""
+)
 COUNT_RE = re.compile(r"(\d+)\s*вест")
 AGE_RE = re.compile(
     r"^(\d+)\s*(секунд\w*|минут\w*|час\w*|ден|дена|недел\w*|месец\w*)$"
@@ -42,12 +48,26 @@ def parse_age_minutes(text: str) -> int | None:
     return int(m.group(1)) * AGE_MINUTES[m.group(2)[:3]]
 
 
+def cluster_id(href: str) -> str | None:
+    m = CLUSTER_HREF.match(href.strip())
+    return m.group(1) if m else None
+
+
+def _cluster_ids_in(node: Node) -> set[str]:
+    return {cid for a in node.css('a[href*="/c/"]')
+            if (cid := cluster_id(a.attributes.get("href") or ""))}
+
+
 def _card_for(link: Node) -> Node:
     """Climb from the /c/ link to the largest ancestor holding only this story."""
     card = link
-    while card.parent is not None and len(card.parent.css('a[href^="/c/"]')) == 1:
+    while card.parent is not None and len(_cluster_ids_in(card.parent)) == 1:
         card = card.parent
     return card
+
+
+def _is_vesti(href: str) -> bool:
+    return urlsplit(href).netloc.lower().removeprefix("www.") == "vesti.mk"
 
 
 def _is_homepage(href: str) -> bool:
@@ -57,7 +77,8 @@ def _is_homepage(href: str) -> bool:
 
 def _parse_card(card: Node, cluster_id: str, count_text: str) -> Cluster | None:
     headline = next(
-        (a for h2 in card.css("h2") for a in h2.css('a[href^="http"]')), None
+        (a for h2 in card.css("h2") for a in h2.css('a[href^="http"]')
+         if not _is_vesti(a.attributes.get("href") or "")), None
     )
     if headline is None:
         return None
@@ -68,6 +89,8 @@ def _parse_card(card: Node, cluster_id: str, count_text: str) -> Cluster | None:
     related: list[Article] = []
     for a in card.css('a[href^="http"]'):
         href = a.attributes.get("href") or ""
+        if _is_vesti(href):
+            continue
         if _is_homepage(href):
             lead_outlet = lead_outlet or a.text(strip=True)
         elif a.attributes.get("title"):
@@ -112,11 +135,11 @@ def parse_clusters(html: str) -> list[Cluster]:
     """Return the top-story clusters in page order (rank 0 = first)."""
     tree = HTMLParser(html)
     clusters: dict[str, Cluster] = {}
-    for link in tree.css('a[href^="/c/"]'):
-        m = CLUSTER_HREF.match(link.attributes.get("href") or "")
-        if not m:
+    for link in tree.css('a[href*="/c/"]'):
+        cid = cluster_id(link.attributes.get("href") or "")
+        if not cid:
             continue
-        parsed = _parse_card(_card_for(link), m.group(1), link.text(strip=True))
+        parsed = _parse_card(_card_for(link), cid, link.text(strip=True))
         if parsed is None:
             continue
         cid = parsed.cluster_id
@@ -124,7 +147,7 @@ def parse_clusters(html: str) -> list[Cluster]:
 
     # Second, independent check: if the raw HTML still has cluster links but
     # the card parser found none, the layout changed. Fail loudly.
-    raw_ids = set(re.findall(r'href="/c/([A-Za-z0-9_-]{8,40})"', html))
+    raw_ids = set(RAW_CLUSTER.findall(html))
     if raw_ids and not clusters:
         raise SourceLayoutError(
             f"vesti.mk: {len(raw_ids)} cluster links in HTML but 0 parsed cards"
@@ -151,12 +174,17 @@ def describe_page(resp: httpx.Response) -> str:
     """What we actually got, so a failure can be diagnosed from the log alone."""
     html = resp.text
     title = re.search(r"<title[^>]*>(.*?)</title>", html, re.S | re.I)
-    hrefs = re.findall(r'href="(/[a-z]+)/', html)
+    hrefs = re.findall(r"""href=["'](?:https?://[^/"']+)?(/[a-z]+)/""", html)
     common = sorted({h: hrefs.count(h) for h in hrefs}.items(), key=lambda kv: -kv[1])[:6]
     body = re.sub(r"<(script|style)\b.*?</\1>|<[^>]+>", " ", html, flags=re.S | re.I)
     return (
         f"final url {resp.url}, status {resp.status_code}, {len(html)} chars, "
         f"server {resp.headers.get('server', '?')}, title {title.group(1).strip()[:80] if title else '-'!r}, "
         f"'/c/' occurrences {html.count('/c/')}, top link paths {common}, "
+        f"'/c/' samples {[html[max(i - 80, 0):i + 60] for i in _find_all(html, '/c/')[:3]]}, "
         f"text start {' '.join(body.split())[:300]!r}"
     )
+
+
+def _find_all(text: str, needle: str) -> list[int]:
+    return [m.start() for m in re.finditer(re.escape(needle), text)]
