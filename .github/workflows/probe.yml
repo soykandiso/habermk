@@ -7,6 +7,13 @@ on:
   schedule:
     - cron: "7,22,37,52 * * * *"
   workflow_dispatch:
+  # Also check the live page right away whenever the parser changes.
+  push:
+    branches: [main]
+    paths:
+      - "src/habermk/sources/**"
+      - "scripts/probe_sources.py"
+      - ".github/workflows/probe.yml"
 
 concurrency:
   group: habermk-probe
