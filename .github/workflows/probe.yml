@@ -1,0 +1,53 @@
+name: probe
+
+# Phase 0: snapshot vesti.mk every 15 minutes (stops by itself after 120
+# snapshots ≈ 30 h) and keep probe/REPORT.md up to date on the `probe` branch.
+# Only reads one public page per run. Turn off with variable PROBE_ENABLED=false.
+on:
+  schedule:
+    - cron: "7,22,37,52 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: habermk-probe
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  snapshot:
+    if: vars.PROBE_ENABLED != 'false'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check out the probe branch
+        run: |
+          git config --global user.name "habermk-bot"
+          git config --global user.email "habermk-bot@users.noreply.github.com"
+          if git ls-remote --exit-code --heads origin probe >/dev/null; then
+            git fetch --depth=1 origin probe:probe
+            git worktree add probe-wt probe
+          else
+            git worktree add --orphan -b probe probe-wt
+          fi
+      - name: Stop when enough snapshots
+        id: count
+        run: |
+          n=$(cat probe-wt/snapshots.jsonl 2>/dev/null | wc -l)
+          echo "n=$n" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-python@v5
+        if: steps.count.outputs.n < 120
+        with:
+          python-version: "3.12"
+          cache: pip
+      - if: steps.count.outputs.n < 120
+        run: |
+          pip install .
+          python scripts/probe_sources.py snapshot --data probe-wt/snapshots.jsonl
+          python scripts/probe_sources.py report --data probe-wt/snapshots.jsonl --out probe-wt/REPORT.md
+          cat probe-wt/REPORT.md >> "$GITHUB_STEP_SUMMARY"
+          cd probe-wt
+          git add snapshots.jsonl REPORT.md
+          git commit -q -m "probe snapshot" && git push -q origin HEAD:probe

@@ -1,0 +1,43 @@
+name: eval
+
+# Phase 0: run the same prompt on several models over real stories.
+# Actions → eval → Run workflow. Download the "eval-results" artifact and open
+# the CSV in Excel to score the Macedonian.
+on:
+  workflow_dispatch:
+    inputs:
+      stories:
+        description: "How many stories"
+        default: "40"
+      models:
+        description: "Comma-separated provider:model (empty = config.yaml list)"
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install ".[paid]"
+      - name: Evaluate
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          args="--stories ${{ inputs.stories }}"
+          if [ -n "${{ inputs.models }}" ]; then args="$args --models ${{ inputs.models }}"; fi
+          python scripts/eval_models.py $args
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: eval-results
+          path: eval/
