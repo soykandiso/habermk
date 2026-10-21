@@ -65,9 +65,11 @@ jobs:
       - name: Extraction check (every 16th snapshot and on code changes)
         if: steps.count.outputs.n < 120
         continue-on-error: true
+        env:
+          N: ${{ steps.count.outputs.n }}
+          EVENT: ${{ github.event_name }}
         run: |
-          n=${{ steps.count.outputs.n }}
-          if [ "${{ github.event_name }}" = "push" ] || [ $(( n % 16 )) -eq 0 ]; then
+          if [ "$EVENT" = "push" ] || [ $(( N % 16 )) -eq 0 ]; then
             python scripts/check_extraction.py --out probe-wt/EXTRACT.md --stories 10
             cat probe-wt/EXTRACT.md >> "$GITHUB_STEP_SUMMARY"
           fi

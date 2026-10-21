@@ -32,10 +32,13 @@ jobs:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          # inputs go through env, never pasted into the script (no injection)
+          STORIES: ${{ inputs.stories }}
+          MODELS: ${{ inputs.models }}
         run: |
-          args="--stories ${{ inputs.stories }}"
-          if [ -n "${{ inputs.models }}" ]; then args="$args --models ${{ inputs.models }}"; fi
-          python scripts/eval_models.py $args
+          set -- --stories "$STORIES"
+          if [ -n "$MODELS" ]; then set -- "$@" --models "$MODELS"; fi
+          python scripts/eval_models.py "$@"
       - uses: actions/upload-artifact@v5
         if: always()
         with:
