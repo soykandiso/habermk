@@ -1,3 +1,5 @@
+import re
+
 import pytest
 
 from habermk.sources.vesti import (
@@ -34,6 +36,23 @@ def test_mobile_and_desktop_copies_are_merged(vesti_html):
 
 def test_highest_article_count_wins(vesti_html):
     assert parse_clusters(vesti_html)[1].article_count == 13
+
+
+@pytest.mark.parametrize("prefix,suffix", [
+    ("https://vesti.mk/c/", ""),
+    ("https://www.vesti.mk/c/", "/"),
+    ("/c/", "/nekoj-slug"),
+])
+def test_absolute_and_slugged_cluster_links(vesti_html, prefix, suffix):
+    html = re.sub(r'href="/c/([^"]+)"', lambda m: f'href="{prefix}{m.group(1)}{suffix}"', vesti_html)
+    # vesti.mk's own links inside a card must not count as articles or outlets
+    html = html.replace("<h2>", '<a href="https://vesti.mk/category/hronika">Хроника</a><h2>', 1)
+    clusters = parse_clusters(html)
+    assert [c.cluster_id for c in clusters] == [
+        "yslP7aABy7_6fWyWFLX2", "Ab3dEf6hIj9kLmNoPq12", "ZZtop_story-0000001",
+    ]
+    assert clusters[0].lead.outlet == "Макфакс"
+    assert all("vesti.mk" not in a.url for c in clusters for a in c.articles)
 
 
 def test_layout_change_fails_loudly():
