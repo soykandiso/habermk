@@ -51,12 +51,16 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-      - if: steps.count.outputs.n < 120
+      - name: Snapshot
+        if: steps.count.outputs.n < 120
         run: |
           pip install .
           python scripts/probe_sources.py snapshot --data probe-wt/snapshots.jsonl
           python scripts/probe_sources.py report --data probe-wt/snapshots.jsonl --out probe-wt/REPORT.md
           cat probe-wt/REPORT.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Save to the probe branch (also the failing page, if any)
+        if: always() && steps.count.outputs.n < 120
+        run: |
           cd probe-wt
-          git add snapshots.jsonl REPORT.md
-          git commit -q -m "probe snapshot" && git push -q origin HEAD:probe
+          git add -A
+          git commit -q -m "probe snapshot" && git push -q origin HEAD:probe || true

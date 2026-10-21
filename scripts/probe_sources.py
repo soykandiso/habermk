@@ -15,8 +15,10 @@ from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 
+import httpx
+
 from habermk.config import load_config
-from habermk.sources.vesti import fetch_clusters
+from habermk.sources.vesti import SourceLayoutError, fetch_clusters
 
 
 def snapshot(data: Path, max_snapshots: int) -> None:
@@ -25,7 +27,15 @@ def snapshot(data: Path, max_snapshots: int) -> None:
         print(f"already {len(lines)} snapshots, nothing to do")
         return
     cfg = load_config()["source"]
-    clusters = fetch_clusters(cfg["url"], cfg["user_agent"])
+    try:
+        clusters = fetch_clusters(cfg["url"], cfg["user_agent"])
+    except SourceLayoutError:
+        # Keep the page that broke the parser, so it can be read and fixed.
+        page = httpx.get(cfg["url"], headers={"User-Agent": cfg["user_agent"]},
+                         timeout=30, follow_redirects=True).text
+        data.parent.mkdir(parents=True, exist_ok=True)
+        (data.parent / "last_failed.html").write_text(page, encoding="utf-8")
+        raise
     record = {
         "ts": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "clusters": [
