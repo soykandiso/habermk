@@ -1,20 +1,23 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Callable
 
 from habermk.formatting import bluesky_text
 
 
 class BlueskyPublisher:
     """Posts the sentence with the article as a link card (the link is not counted
-    in the 300-grapheme limit)."""
+    in the 300-grapheme limit). With cards on, our image is the link card's
+    thumbnail, so the post keeps the clickable source link."""
 
     name = "bluesky"
 
-    def __init__(self, handle: str, app_password: str, client: Any = None):
+    def __init__(self, handle: str, app_password: str, client: Any = None,
+                 card: Callable[[dict], bytes] | None = None):
         self.handle = handle
         self._password = app_password
         self._client = client
+        self.card = card
 
     @property
     def client(self) -> Any:
@@ -41,9 +44,11 @@ class BlueskyPublisher:
             return existing
         from atproto import models
 
+        thumb = self.client.upload_blob(self.card(item)).blob if self.card else None
         embed = models.AppBskyEmbedExternal.Main(
             external=models.AppBskyEmbedExternal.External(
                 uri=item["url"], title=item["title"][:300], description=item["outlet"],
+                thumb=thumb,
             )
         )
         resp = self.client.send_post(

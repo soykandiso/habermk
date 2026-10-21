@@ -21,13 +21,16 @@ class FakeTelegram:
         if method == "getUpdates":
             ups = [u for u in self.updates if u["update_id"] >= params.get("offset", 0)]
             return ups
-        if method == "sendMessage":
+        if method in ("sendMessage", "sendPhoto"):
             self._next_id += 1
             return {"message_id": self._next_id}
         return True
 
     def send_message(self, chat_id, text, **params):
         return self.call("sendMessage", chat_id=chat_id, text=text, **params)
+
+    def send_photo(self, chat_id, photo, **params):
+        return self.call("sendPhoto", chat_id=chat_id, photo=photo, **params)
 
     def press(self, key: str, action: str = "ok", user: str | None = None) -> None:
         uid = len(self.updates) + 1

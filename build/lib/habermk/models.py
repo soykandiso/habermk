@@ -23,6 +23,7 @@ class Cluster:
     article_count: int = 0   # "46 вести"
     age_minutes: int | None = None
     snippet: str = ""
+    category: str = ""       # vesti.mk data-tv-cat: local, world, sport, ...
 
     @property
     def articles(self) -> list[Article]:
