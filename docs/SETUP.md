@@ -99,6 +99,12 @@ Change the brand name on the card or switch cards off in `config.yaml` → `card
 | `DRY_RUN` | `0` / `1` | `1` = never publish (drafts only) |
 | `PROBE_ENABLED` | `false` | stops the Phase 0 probe early |
 
+## Optional: ask Time.mk for permission
+
+A ready email (Macedonian + English) is in
+[timemk-permission-email.md](timemk-permission-email.md). With their written
+consent, their RSS could become a second trend signal.
+
 ## Legal reminders
 
 - Every post names the outlet and links the article (Art. 52 copyright law).
