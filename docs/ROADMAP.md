@@ -47,8 +47,11 @@ Status as of 21 Oct 2026. ✅ done and merged · ⏳ waiting on you · 🔜 next
 2. Secrets `GROQ_API_KEY`, `GEMINI_API_KEY` → run the **eval** workflow → score the CSV.
 3. Pick the final channel name/handle (the card says "Бадијала клик" for now).
 4. Telegram bot + channel, Bluesky app password, `STATE_KEY` → `BOT_ENABLED=true` → dry run → live with approval.
-5. Optional: send the Time.mk email (docs/timemk-permission-email.md).
-6. Before `APPROVAL_MODE=auto`: about a week of manual approval, and a short consult with a media lawyer.
+5. Recommended: the external 15-minute clock (cron-job.org + a token that can
+   only start this repo's workflows; docs/SETUP.md). GitHub's schedule is
+   best effort and was widely late or silent in autumn 2026.
+6. Optional: send the Time.mk email (docs/timemk-permission-email.md).
+7. Before `APPROVAL_MODE=auto`: about a week of manual approval, and a short consult with a media lawyer.
 
 ## 🔜 Next (I do these as soon as the inputs exist)
 - **Model choice from your eval scores**: put the winner first in `config.yaml`,
@@ -79,3 +82,4 @@ Status as of 21 Oct 2026. ✅ done and merged · ⏳ waiting on you · 🔜 next
 | 21 Oct | Cards on Telegram and as the Bluesky link-card image; Facebook keeps the outlet preview | keep a clickable source link everywhere |
 | 21 Oct | Rest a model on long rate limits instead of skipping stories | free quotas (Groq ≈ 50 articles/day) |
 | 21 Oct | Encrypt the state, single-commit branch | public repo: rejected drafts and deleted posts must not stay readable |
+| 21 Oct | External clock recommended; GitHub cron kept as backup | GitHub's 15-min schedule is best effort (community reports #206019, #185024, #203473); no scheduled run in this repo yet |
