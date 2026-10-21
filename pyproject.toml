@@ -30,3 +30,10 @@ habermk = ["fonts/*.ttf", "fonts/OFL.txt"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 110
+
+[tool.ruff.lint]
+# real bugs only (pyflakes, bugbear, pycodestyle errors), no style churn
+select = ["E", "F", "W", "B"]
