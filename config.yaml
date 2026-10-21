@@ -66,6 +66,7 @@ run:
   draft_ttl_hours: 6        # an unanswered draft expires (stale news)
   max_publish_delay_hours: 12  # an approved post this old (since drafting) is not published
   alert_cooldown_hours: 3   # the same problem is reported to you at most this often
+  digest_time: "22:30"      # daily overview in your chat (local time); "" = off
   max_pending_runs: 3       # stories where every model failed are retried this often
   max_platform_attempts: 3  # a platform that keeps failing is given up per story
   dedupe_title_similarity: 0.8

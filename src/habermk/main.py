@@ -229,7 +229,7 @@ class Bot:
         for item in self.store.items.values():
             if item["status"] == "approved" \
                     and not any(p.get("id") for p in item["platforms"].values()) \
-                    and datetime.fromisoformat(item["drafted_at"]) < cutoff:
+                    and datetime.fromisoformat(item.get("drafted_at") or item["first_seen"]) < cutoff:
                 item.update(status="expired", reason="approved but too old to publish")
                 self.stats["approvals expired"] += 1
 
@@ -264,9 +264,12 @@ class Bot:
         if all(item["platforms"].get(p.name, {}).get("id")
                or item["platforms"].get(p.name, {}).get("errors", 0) >= max_attempts
                for p in self.publishers):
-            item["status"] = "posted"
-            self.notify_posted(item)
-            self.save(f"posted {item['cluster_id']}", push=True)
+            if any(p.get("id") for p in item["platforms"].values()):
+                item["status"] = "posted"
+                self.notify_posted(item)
+            else:
+                item["status"] = "failed"   # every platform gave up; the alerts said why
+            self.save(f"{item['status']} {item['cluster_id']}", push=True)
 
     def links(self, item: dict[str, Any]) -> dict[str, str | None]:
         return {p.name: p.link(item["platforms"][p.name]["id"]) for p in self.publishers
@@ -365,6 +368,7 @@ class Bot:
             log.info("outside posting window, only approvals handled")
         self.store.data["model_cooldowns"] = self.router.active_cooldowns()
         removed = self.store.prune(now, self.run_cfg["prune_after_days"])
+        self.send_digest(now)
         self.alert(now)
         self.save(f"run {now.isoformat(timespec='minutes')} (pruned {removed})", push=True)
         self.write_summary(now)
@@ -392,6 +396,53 @@ class Bot:
             return
         for e in fresh:
             sent[alert_signature(e)] = now.isoformat()
+
+    def digest_text(self, now: datetime) -> str:
+        """Today's overview: what went out, what you decided, what was skipped and why."""
+        today = now.date().isoformat()
+        items = [it for it in self.store.items.values()
+                 if it["first_seen"].startswith(today) or (it.get("drafted_at") or "").startswith(today)
+                 or any(p.get("posted_at", "").startswith(today) for p in it["platforms"].values())]
+        posted = Counter(name for it in items for name, p in it["platforms"].items()
+                         if p.get("posted_at", "").startswith(today))
+        stories_posted = sum(1 for it in items if any(
+            p.get("posted_at", "").startswith(today) for p in it["platforms"].values()))
+        status = Counter(it["status"] for it in items)
+        skip_why = Counter()
+        for it in items:
+            if it["status"] == "skipped":
+                reason = it.get("reason", "")
+                skip_why["без текст" if "no article text" in reason
+                         else "моделот: нема факт" if "model SKIP" in reason
+                         else "моделите не одговорија" if "models failed" in reason
+                         else "не помина проверки"] += 1
+        lines = [f"🗓 Преглед за {now.strftime('%d.%m.%Y')}", "",
+                 f"Објавени приказни: {stories_posted}"
+                 + (f" ({', '.join(f'{k} {v}' for k, v in sorted(posted.items()))})" if posted else "")]
+        if not self.auto:
+            lines.append(f"Одобрени: {status['approved'] + status['posted'] + status['deleted']}"
+                         f" · одбиени: {status['rejected']} · истечени: {status['expired']}"
+                         f" · чекаат: {status['draft']}")
+        lines.append(f"Прескокнати: {status['skipped']}"
+                     + (f" ({', '.join(f'{k} {v}' for k, v in skip_why.most_common())})" if skip_why else ""))
+        lines.append(f"Дупликати: {status['duplicate']} · избришани: {status['deleted']}")
+        if status["failed"]:
+            lines.append(f"❌ Неуспешни објави (ниедна платформа): {status['failed']}")
+        if self.store.data.get("paused"):
+            lines.append("⏸ Ботот е паузиран (/resume).")
+        return "\n".join(lines)
+
+    def send_digest(self, now: datetime) -> None:
+        at = self.run_cfg.get("digest_time") or ""
+        today = now.date().isoformat()
+        if not self.telegram or not at or now.time() < time.fromisoformat(at) \
+                or self.store.data.get("digest_date") == today:
+            return
+        try:
+            self.telegram.send_message(self.admin_chat, self.digest_text(now))
+            self.store.data["digest_date"] = today
+        except TelegramError as e:
+            self.error(f"telegram digest: {e}")
 
     def write_summary(self, now: datetime) -> None:
         lines = [f"### habermk run {now.isoformat(timespec='minutes')}",

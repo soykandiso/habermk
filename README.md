@@ -14,8 +14,11 @@ Bluesky (Facebook in Phase 2), always with the source outlet and a link.
   ✅ / ❌. One variable (`APPROVAL_MODE=auto`) turns on full auto.
 - **Never twice:** stable cluster ID, plus same-URL and similar-title checks.
   State is saved and pushed after every single post, per platform.
+- **Under your control:** a 🗑 "delete everywhere" button under every post,
+  `/pause` `/resume` `/status` in Telegram, a daily overview, throttled alerts.
 
-Setup: **[docs/SETUP.md](docs/SETUP.md)** (step by step).
+Setup: **[docs/SETUP.md](docs/SETUP.md)** (step by step) ·
+Plan and status: **[docs/ROADMAP.md](docs/ROADMAP.md)**
 
 ## How a run works
 
