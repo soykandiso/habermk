@@ -6,6 +6,8 @@ source:
   user_agent: "habermk-bot/0.1 (+https://github.com/soykandiso/habermk)"
   min_outlets: 4          # a cluster must be covered by at least N articles ("46 вести")
   max_age_hours: 8        # ignore stories older than this
+  skip_categories: []     # vesti.mk categories never processed, e.g. [sport, entertainment]
+                          # (seen: local, world, business, technology, entertainment, sport)
 
 extract:
   min_chars: 250          # shorter extracted text -> try next article in the cluster
@@ -62,6 +64,8 @@ run:
   max_posts_per_run: 2
   max_posts_per_day: 30
   draft_ttl_hours: 6        # an unanswered draft expires (stale news)
+  max_publish_delay_hours: 12  # an approved post this old (since drafting) is not published
+  alert_cooldown_hours: 3   # the same problem is reported to you at most this often
   max_pending_runs: 3       # stories where every model failed are retried this often
   max_platform_attempts: 3  # a platform that keeps failing is given up per story
   dedupe_title_similarity: 0.8

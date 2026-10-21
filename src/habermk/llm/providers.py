@@ -81,6 +81,8 @@ class GeminiProvider:
         except errors.APIError as e:
             retryable = e.code == 429 or e.code >= 500
             wait = 30 if e.code == 429 else 10
+            if e.code == 429 and "perday" in str(e).lower().replace(" ", ""):
+                wait = 3600  # daily free quota used up: try again in an hour
             raise ModelError(f"gemini {e.code}: {e}", retryable=retryable, retry_after=wait) from e
         except Exception as e:  # network errors surface as httpx exceptions
             raise ModelError(f"gemini unavailable: {e}", retryable=True, retry_after=10) from e

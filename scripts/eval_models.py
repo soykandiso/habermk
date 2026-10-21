@@ -24,6 +24,7 @@ from habermk.extract import best_texts
 from habermk.formatting import platform_errors
 from habermk.llm.providers import ModelError
 from habermk.llm.router import Router
+from habermk.logs import setup_logging
 from habermk.sources.vesti import fetch_clusters
 from habermk.validate import LLMFormatError, check, first_word_warning
 
@@ -43,7 +44,7 @@ def main() -> int:
                     help="comma-separated provider:model list")
     ap.add_argument("--outdir", type=Path, default=Path("eval"))
     args = ap.parse_args()
-    logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
+    setup_logging()
 
     model_ids = [m.strip() for m in args.models.split(",") if m.strip()]
     router = Router.from_config(cfg["llm"], only=model_ids)
@@ -67,11 +68,11 @@ def main() -> int:
             found = best_texts(cluster, cfg, client)
             art, text = found[0] if found else (cluster.lead, "")
             (args.outdir / "texts" / f"{cluster.cluster_id}.txt").write_text(
-                f"{cluster.title}\n{art.outlet} — {art.url}\n\n{text}", encoding="utf-8")
+                f"{cluster.title}\n{art.source} — {art.url}\n\n{text}", encoding="utf-8")
             logging.info("[%d/%d] %s (%d chars)", n, len(picked), cluster.title[:70], len(text))
             base = {
                 "story": n, "rank": cluster.rank, "cluster_id": cluster.cluster_id,
-                "articles": cluster.article_count, "outlet": art.outlet,
+                "articles": cluster.article_count, "outlet": art.source,
                 "headline": art.title or cluster.title, "url": art.url,
                 "article_start": text[:1500],
             }
@@ -81,10 +82,10 @@ def main() -> int:
                     row.update(status="NO_TEXT", problems="no article text could be extracted")
                 else:
                     try:
-                        result = router.call_one(spec, row["headline"], art.outlet, text)
+                        result = router.call_one(spec, row["headline"], art.source, text)
                         problems = check(result, text, cfg["validation"])
                         if result["status"] == "OK":
-                            problems += platform_errors(result["sentence"], art.outlet, art.url,
+                            problems += platform_errors(result["sentence"], art.source, art.url,
                                                         cfg["platforms"])
                         status = result["status"]
                         if status == "OK" and problems:

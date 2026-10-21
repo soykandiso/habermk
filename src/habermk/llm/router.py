@@ -17,6 +17,11 @@ class AllModelsFailed(RuntimeError):
     """No model produced a usable answer. Keep the story pending; never post."""
 
 
+class AllModelsCooling(AllModelsFailed):
+    """Every model is resting after a long rate limit (e.g. a used-up daily free
+    quota). Not the story's fault: it must not count as a failed attempt."""
+
+
 @dataclass
 class ModelSpec:
     id: str                       # "provider:model"
@@ -37,14 +42,26 @@ class Router:
                  providers: dict[str, Any] | None = None,
                  sleep: Callable[[float], None] = time.sleep,
                  clock: Callable[[], float] = time.monotonic,
-                 max_wait_s: float = 90):
+                 max_wait_s: float = 90,
+                 wall: Callable[[], float] = time.time):
         self.specs = specs
         self.temperature = temperature
         self._providers = providers if providers is not None else {}
         self._sleep = sleep
         self._clock = clock
+        self._wall = wall
         self._last_call: dict[str, float] = {}
         self.max_wait_s = max_wait_s
+        # model id -> epoch seconds until which it is not called (kept in state)
+        self.cooldown_until: dict[str, float] = {}
+
+    def active_cooldowns(self) -> dict[str, float]:
+        now = self._wall()
+        return {k: v for k, v in self.cooldown_until.items() if v > now}
+
+    def available(self) -> list[ModelSpec]:
+        now = self._wall()
+        return [s for s in self.specs if self.cooldown_until.get(s.id, 0) <= now]
 
     @classmethod
     def from_config(cls, llm_cfg: dict[str, Any], only: list[str] | None = None) -> "Router":
@@ -80,9 +97,15 @@ class Router:
                 return parse_llm_json(raw)
             except ModelError as e:
                 last_error = e
+                if e.retryable and e.retry_after > self.max_wait_s:
+                    # e.g. the daily free quota is used up: rest this model instead
+                    # of sleeping, and skip it in the next runs too
+                    self.cooldown_until[spec.id] = self._wall() + e.retry_after
+                    log.warning("model %s rests for %.0f s", spec.id, e.retry_after)
+                    raise
                 if not e.retryable or attempt == 1:
                     raise
-                self._sleep(min(e.retry_after, self.max_wait_s))
+                self._sleep(e.retry_after)
             except LLMFormatError as e:
                 last_error = e
                 if attempt == 1:
@@ -91,11 +114,16 @@ class Router:
 
     def generate(self, headline: str, outlet: str, text: str) -> tuple[dict[str, Any], str]:
         """First model that answers wins. Returns (result, model_id)."""
+        specs = self.available()
+        if not specs:
+            raise AllModelsCooling("every model is resting after a rate limit")
         failures = []
-        for spec in self.specs:
+        for spec in specs:
             try:
                 return self.call_one(spec, headline, outlet, text), spec.id
             except (ModelError, LLMFormatError) as e:
                 log.warning("model %s failed: %s", spec.id, e)
                 failures.append(f"{spec.id}: {e}")
+        if not self.available():
+            raise AllModelsCooling("; ".join(failures))
         raise AllModelsFailed("; ".join(failures))
