@@ -1,11 +1,14 @@
 # vesti.mk cluster-ID stability report
 
-- Snapshots: **7** from 2026-10-21T20:27:35+00:00 to 2026-10-21T21:04:32+00:00 (0.6 h)
-- Distinct cluster IDs: **37**
-- Average time a cluster stays in the top list: **0.6 h**
-- Clusters whose headline changed but ID stayed the same: **1** (good: the ID survives headline changes)
-- Article URLs that appeared under more than one cluster ID: **0** of 167 (bad if high: the same story got a new ID)
+- Snapshots: **8** from 2026-10-21T20:27:35+00:00 to 2026-10-21T23:11:02+00:00 (2.7 h)
+- Distinct cluster IDs: **40** (≈ 14.7 new per hour)
+- Average time a cluster stays in the top list: **2.3 h**
+- Clusters whose headline changed but ID stayed the same: **4** (good: the ID survives headline changes)
+- Article URLs that appeared under more than one cluster ID: **0** of 194 (bad if high: the same story got a new ID)
 
 ## Examples of headline changes under one ID
 
 - `254636`: Охриѓанец осомничен за производство и дистрибуција на детска порнографија | ПРИТВОР ЗА ОХРИЃАНЕЦ ОСОМНИЧЕН ЗА ПРОИЗВОДСТВО И ДИСТРИБУЦИЈА НА ДЕТСКА ПОРНОГРАФИЈА
+- `252959`: Награда за режија за Нела Витошевиќ и три признанија за „Змеј“ на меѓународната сцена | Претставата „Змеј“ и режисерката Нела Витошевиќ ги освоија регионалните сцени
+- `252938`: Објавен патописот Крај бреговите на Охридското Езеро од Бранислав Нушиќ на македонски јазик | „Матица македонска“ го објави патописот „Крај бреговите на Охридското Езеро“ од Бранислав Нушиќ
+- `253718`: Судењето за „Пулс“ продолжува со вкрстено испитување на вештакот на одбраната Русески, родителите на ... | Судењето за „Пулс“ продолжува со вкрстено испитување на вештакот на одбраната Русески, родителите на загинатите бараат вистина и правда
