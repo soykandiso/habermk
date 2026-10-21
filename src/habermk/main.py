@@ -29,11 +29,11 @@ from habermk.dedupe import duplicate_of
 from habermk.extract import best_texts
 from habermk.formatting import platform_errors
 from habermk.llm.router import AllModelsCooling, AllModelsFailed, Router
-from habermk.logs import setup_logging
+from habermk.logs import redact, setup_logging
 from habermk.models import Cluster
 from habermk.publishers import Publisher, from_env
 from habermk.sources.vesti import fetch_clusters
-from habermk.state import StateStore
+from habermk.state import StateKeyError, StateStore
 from habermk.telegram import TelegramAPI, TelegramError
 from habermk.validate import check, first_word_warning
 
@@ -78,6 +78,7 @@ class Bot:
         return start <= now.time() <= end
 
     def error(self, msg: str) -> None:
+        msg = redact(msg)
         log.error(msg)
         self.errors.append(msg)
 
@@ -164,7 +165,7 @@ class Bot:
                 models_ok = self.process(c, item, now)
             except Exception as e:  # one broken article must not stop the others
                 self.error(f"story {c.cluster_id}: {type(e).__name__}: {e}"[:400])
-                self.count_failed_attempt(item, f"{type(e).__name__}: {e}")
+                self.count_failed_attempt(item, redact(f"{type(e).__name__}: {e}"))
                 models_ok = True
             if item["status"] == "draft":
                 self.send_draft(c.cluster_id, item)
@@ -192,7 +193,7 @@ class Bot:
                 log.warning("all models resting, %s stays pending: %s", c.cluster_id, e)
                 return False  # quota, not the story: no attempt counted
             except AllModelsFailed as e:
-                self.count_failed_attempt(item, f"models failed: {e}")
+                self.count_failed_attempt(item, redact(f"models failed: {e}"))
                 self.error(f"all models failed for {c.cluster_id}: {e}"[:500])
                 return False
             problems = check(result, text, self.cfg["validation"])
@@ -257,7 +258,7 @@ class Bot:
                 log.info("posted %s to %s: %s", item["cluster_id"], pub.name, rec["id"])
             except Exception as e:  # one platform must never stop the others
                 rec["errors"] = rec.get("errors", 0) + 1
-                rec["last_error"] = f"{type(e).__name__}: {e}"[:300]
+                rec["last_error"] = redact(f"{type(e).__name__}: {e}")[:300]
                 self.error(f"{pub.name} {item['cluster_id']}: {rec['last_error']}")
             # save + push after each attempt so a crash never causes a repost
             self.save(f"post {item['cluster_id']} {pub.name}", push=True)
@@ -301,7 +302,7 @@ class Bot:
                 lines.append(f"{name}: избришано")
             except Exception as e:
                 all_gone = False
-                rec["delete_error"] = f"{type(e).__name__}: {e}"[:300]
+                rec["delete_error"] = redact(f"{type(e).__name__}: {e}")[:300]
                 link = pub.link(rec["id"]) if pub else None
                 lines.append(f"{name}: ❌ {rec['delete_error']}"
                              + (f"\n   избриши рачно: {link}" if link else ""))
@@ -467,7 +468,8 @@ def build(env: dict[str, str] | None = None) -> Bot:
     want = cfg["extract"]["articles_per_cluster"]
     return Bot(
         cfg=cfg,
-        store=StateStore(env.get("STATE_FILE", "state.json"), env.get("STATE_GIT_DIR") or None),
+        store=StateStore(env.get("STATE_FILE", "state.json"), env.get("STATE_GIT_DIR") or None,
+                         secret=env.get("STATE_KEY") or None),
         router=Router.from_config(cfg["llm"]),
         publishers=from_env(cfg, env),
         telegram=tg if env.get("TELEGRAM_ADMIN_CHAT_ID") else None,
@@ -484,13 +486,25 @@ def build(env: dict[str, str] | None = None) -> Bot:
 
 def main() -> int:
     setup_logging()
-    bot = build()
+    if os.environ.get("STATE_GIT_DIR") and not os.environ.get("STATE_KEY"):
+        log.error("Secret STATE_KEY is missing: the state goes to a public branch and must "
+                  "be encrypted (docs/SETUP.md, Phase 1)")
+        return 1
+    try:
+        bot = build()
+    except StateKeyError as e:
+        log.error("STATE_KEY: %s", e)
+        return 1
     if not bot.telegram and not bot.auto:
         log.error("manual mode needs TELEGRAM_BOT_TOKEN and TELEGRAM_ADMIN_CHAT_ID")
         return 1
     log.info("mode=%s dry_run=%s platforms=%s", "auto" if bot.auto else "manual",
              bot.dry_run, [p.name for p in bot.publishers])
-    return bot.run()
+    try:
+        return bot.run()
+    except StateKeyError as e:
+        log.error("STATE_KEY: %s (docs/TROUBLESHOOTING.md)", e)
+        return 1
 
 
 if __name__ == "__main__":

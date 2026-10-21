@@ -41,14 +41,19 @@ whether vesti.mk keeps the same cluster ID while the headline changes.
 3. **Your chat ID:** open your bot in Telegram and press *Start*. Then open in a browser
    `https://api.telegram.org/bot<TOKEN>/getUpdates` (your token instead of `<TOKEN>`).
    Find `"chat":{"id":123456789` → Secret `TELEGRAM_ADMIN_CHAT_ID` = that number.
-   (Do this before step 6: once the bot runs, it reads these updates itself.)
+   (Do this before step 7: once the bot runs, it reads these updates itself.)
 4. **Bluesky:** create the account → *Settings* → *Privacy and security* → *App passwords* → *Add* → name `habermk` → copy.
    Secrets `BLUESKY_HANDLE` (e.g. `badijalaklik.bsky.social`) and `BLUESKY_APP_PASSWORD`.
 5. Variable `APPROVAL_MODE` = `manual`.
-6. Variable `BOT_ENABLED` = `true`. From now on the bot runs every 15 minutes, 06:00–23:59 Skopje time.
-7. **Test without posting:** *Actions* → **run** → *Run workflow* → dry_run `1`.
+6. **Secret `STATE_KEY`**: any long random text, at least 20 characters (let
+   your password manager generate 40). It encrypts the bot's memory, which is
+   stored on the public `state` branch: without it, drafts you reject would be
+   readable by anyone. Keep a copy in your password manager and never change it
+   (a new key makes the bot forget what it already posted).
+7. Variable `BOT_ENABLED` = `true`. From now on the bot runs every 15 minutes, 06:00–23:59 Skopje time.
+8. **Test without posting:** *Actions* → **run** → *Run workflow* → dry_run `1`.
    Drafts arrive in your private chat with ✅ / ❌. Nothing is posted in dry-run.
-8. **Live:** press ✅ on a draft. Within the next run (≤15–30 min) it appears in
+9. **Live:** press ✅ on a draft. Within the next run (≤15–30 min) it appears in
    the channel and on Bluesky. Run the workflow again by hand: no duplicate.
 
 What you will see in your private chat:
@@ -128,6 +133,11 @@ Change the brand name on the card or switch cards off in `config.yaml` → `card
 A ready email (Macedonian + English) is in
 [timemk-permission-email.md](timemk-permission-email.md). With their written
 consent, their RSS could become a second trend signal.
+
+## Something went wrong?
+
+See [TROUBLESHOOTING.md](TROUBLESHOOTING.md): every error message the bot can
+send you, and what to do.
 
 ## Legal reminders
 
