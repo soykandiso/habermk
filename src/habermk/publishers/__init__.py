@@ -13,6 +13,14 @@ class Publisher(Protocol):
 
     def post(self, item: dict[str, Any]) -> str: ...
 
+    def delete(self, post_id: str) -> None:
+        """Remove a post (takedown). Raises on failure."""
+        ...
+
+    def link(self, post_id: str) -> str | None:
+        """Public web link to a post, if there is one."""
+        ...
+
 
 def from_env(cfg: dict[str, Any], env: dict[str, str] | None = None) -> list[Publisher]:
     """Every platform whose secrets are set is enabled."""

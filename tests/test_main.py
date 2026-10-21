@@ -119,7 +119,10 @@ def test_auto_mode_posts_without_drafts(make_bot):
     pub = FakePublisher("telegram")
     make_bot(auto=True, tg=tg, pubs=[pub]).run()
     assert len(pub.posts) == 1
-    assert not any("reply_markup" in m for m in tg.sent())
+    assert not any(m["text"].startswith("📝") for m in tg.sent())
+    posted, = [m for m in tg.sent() if m["text"].startswith("📣 ОБЈАВЕНО")]
+    assert posted["reply_markup"]["inline_keyboard"][0][0]["callback_data"] == "del:" + "c1" * 10
+    assert "https://telegram.test/telegram-1" in posted["text"]
 
 
 def test_dry_run_never_publishes(make_bot):
@@ -289,3 +292,113 @@ def test_logging_hides_request_urls():
     setup_logging()
     assert not logging.getLogger("httpx").isEnabledFor(logging.INFO)
     assert logging.getLogger("habermk").isEnabledFor(logging.INFO)
+
+
+# ------------------------------------------------------- takedown & commands
+
+def press_with_message(tg, key, action, message_id=777):
+    tg.press(key, action)
+    tg.updates[-1]["callback_query"]["message"] = {"message_id": message_id}
+
+
+def command(tg, text, user="111"):
+    uid = len(tg.updates) + 1
+    tg.updates.append({"update_id": uid, "message": {"from": {"id": int(user)}, "text": text}})
+
+
+def test_takedown_needs_confirmation_then_deletes_everywhere(make_bot):
+    tg = FakeTelegram()
+    pubs = [FakePublisher("telegram"), FakePublisher("bluesky")]
+    make_bot(auto=True, tg=tg, pubs=pubs).run()
+    key = "c1" * 10
+
+    press_with_message(tg, key, "del")          # first press only asks
+    bot = make_bot(auto=True, tg=tg, pubs=pubs)
+    bot.get_clusters = lambda: []
+    bot.run()
+    assert [p.deleted for p in pubs] == [[], []]
+    confirm = [p for m, p in tg.calls if m == "editMessageText"][-1]
+    assert confirm["reply_markup"]["inline_keyboard"][0][0]["callback_data"] == "delok:" + key
+
+    press_with_message(tg, key, "delok")
+    bot = make_bot(auto=True, tg=tg, pubs=pubs)
+    bot.get_clusters = lambda: []
+    bot.run()
+    assert [p.deleted for p in pubs] == [["telegram-1"], ["bluesky-1"]]
+    assert bot.store.items[key]["status"] == "deleted"
+    done = [p for m, p in tg.calls if m == "editMessageText"][-1]
+    assert done["text"].startswith("🗑 ИЗБРИШАНО")
+
+
+def test_failed_takedown_says_where_to_delete_by_hand(make_bot):
+    tg = FakeTelegram()
+    pubs = [FakePublisher("telegram"), FakePublisher("bluesky")]
+    pubs[1].fail_delete = True
+    make_bot(auto=True, tg=tg, pubs=pubs).run()
+    key = "c1" * 10
+    press_with_message(tg, key, "delok")
+    bot = make_bot(auto=True, tg=tg, pubs=pubs)
+    bot.get_clusters = lambda: []
+    bot.run()
+    item = bot.store.items[key]
+    assert item["status"] == "posted" and item["platforms"]["telegram"]["deleted_at"]
+    done = [p for m, p in tg.calls if m == "editMessageText"][-1]
+    assert "избриши рачно: https://bluesky.test/bluesky-1" in done["text"]
+
+
+def test_takedown_cancel_restores_button(make_bot):
+    tg = FakeTelegram()
+    pubs = [FakePublisher("telegram")]
+    make_bot(auto=True, tg=tg, pubs=pubs).run()
+    key = "c1" * 10
+    press_with_message(tg, key, "keep")
+    bot = make_bot(auto=True, tg=tg, pubs=pubs)
+    bot.get_clusters = lambda: []
+    bot.run()
+    edit = [p for m, p in tg.calls if m == "editMessageText"][-1]
+    assert edit["reply_markup"]["inline_keyboard"][0][0]["callback_data"] == "del:" + key
+    assert pubs[0].deleted == []
+
+
+def test_pause_stops_drafts_and_posts_until_resume(make_bot):
+    tg = FakeTelegram()
+    pub = FakePublisher("telegram")
+    model = Model()
+    command(tg, "/pause")
+    make_bot(auto=True, tg=tg, pubs=[pub], model=model).run()
+    assert pub.posts == [] and model.calls == 0
+    assert any(m["text"].startswith("⏸") for m in tg.sent())
+    command(tg, "/status")
+    make_bot(auto=True, tg=tg, pubs=[pub], model=model).run()
+    assert any("Пауза: да" in m["text"] for m in tg.sent())
+    command(tg, "/resume")
+    make_bot(auto=True, tg=tg, pubs=[pub], model=model).run()
+    assert len(pub.posts) == 1
+
+
+def test_commands_from_strangers_are_ignored(make_bot):
+    tg = FakeTelegram()
+    command(tg, "/pause", user="999")
+    bot = make_bot(tg=tg)
+    bot.run()
+    assert "paused" not in bot.store.data
+    assert not any(m["text"].startswith("⏸") for m in tg.sent())
+
+
+def test_old_button_press_that_telegram_refuses_to_answer_still_counts(make_bot):
+    tg = FakeTelegram()
+    make_bot(tg=tg).run()
+    tg.press("c1" * 10, "ok")
+    tg.fail.add("answerCallbackQuery")   # "query is too old"
+    pub = FakePublisher("telegram")
+    bot = make_bot(tg=tg, pubs=[pub])
+    bot.run()
+    assert len(pub.posts) == 1
+    assert not any("approvals" in e for e in bot.errors)
+
+
+def test_command_menu_is_set_once(make_bot):
+    tg = FakeTelegram()
+    make_bot(tg=tg).run()
+    make_bot(tg=tg).run()
+    assert [m for m, _ in tg.calls].count("setMyCommands") == 1

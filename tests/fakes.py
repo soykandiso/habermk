@@ -45,10 +45,20 @@ class FakePublisher:
     def __init__(self, name: str, fail: bool = False):
         self.name = name
         self.fail = fail
+        self.fail_delete = False
         self.posts: list[dict] = []
+        self.deleted: list[str] = []
 
     def post(self, item: dict) -> str:
         if self.fail:
             raise RuntimeError(f"{self.name} is down")
         self.posts.append(item)
         return f"{self.name}-{len(self.posts)}"
+
+    def delete(self, post_id: str) -> None:
+        if self.fail_delete:
+            raise RuntimeError(f"{self.name} refused delete")
+        self.deleted.append(post_id)
+
+    def link(self, post_id: str) -> str:
+        return f"https://{self.name}.test/{post_id}"

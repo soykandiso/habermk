@@ -40,6 +40,10 @@ from habermk.validate import check, first_word_warning
 log = logging.getLogger("habermk")
 
 
+def data_time(iso: str) -> str:
+    return datetime.fromisoformat(iso).strftime("%d.%m. %H:%M")
+
+
 def alert_signature(message: str) -> str:
     """Same problem, same signature: numbers (story ids, counts) don't matter."""
     return re.sub(r"\d+", "#", message)[:120]
@@ -87,8 +91,12 @@ class Bot:
     def handle_approvals(self, now: datetime) -> None:
         if not self.telegram:
             return
+        approval.set_commands(self.telegram, self.admin_chat, self.store.data)
         try:
-            decided = approval.process_updates(self.telegram, self.admin_chat, self.store.data, now)
+            decided = approval.process_updates(
+                self.telegram, self.admin_chat, self.store.data, now,
+                on_delete=lambda key, item: self.delete_item(item, now),
+                on_command=lambda command: self.command(command, now))
             self.stats["decisions"] += decided
         except TelegramError as e:
             self.error(f"telegram approvals: {e}")
@@ -257,6 +265,87 @@ class Bot:
                or item["platforms"].get(p.name, {}).get("errors", 0) >= max_attempts
                for p in self.publishers):
             item["status"] = "posted"
+            self.notify_posted(item)
+            self.save(f"posted {item['cluster_id']}", push=True)
+
+    def links(self, item: dict[str, Any]) -> dict[str, str | None]:
+        return {p.name: p.link(item["platforms"][p.name]["id"]) for p in self.publishers
+                if item["platforms"].get(p.name, {}).get("id")}
+
+    def notify_posted(self, item: dict[str, Any]) -> None:
+        """Your copy of the publication, with the 🗑 takedown button."""
+        if not self.telegram or not any(p.get("id") for p in item["platforms"].values()):
+            return
+        try:
+            item["posted_message_id"] = approval.send_posted(
+                self.telegram, self.admin_chat, item["cluster_id"], item, self.links(item))
+        except TelegramError as e:
+            self.error(f"telegram posted notice {item['cluster_id']}: {e}")
+
+    def delete_item(self, item: dict[str, Any], now: datetime) -> str:
+        """Takedown: remove the post from every platform where it went out."""
+        by_name = {p.name: p for p in self.publishers}
+        lines, all_gone = [], True
+        for name, rec in item["platforms"].items():
+            if not rec.get("id") or rec.get("deleted_at"):
+                continue
+            pub = by_name.get(name)
+            try:
+                if pub is None:
+                    raise RuntimeError("platform no longer configured")
+                pub.delete(rec["id"])
+                rec["deleted_at"] = now.isoformat()
+                lines.append(f"{name}: избришано")
+            except Exception as e:
+                all_gone = False
+                rec["delete_error"] = f"{type(e).__name__}: {e}"[:300]
+                link = pub.link(rec["id"]) if pub else None
+                lines.append(f"{name}: ❌ {rec['delete_error']}"
+                             + (f"\n   избриши рачно: {link}" if link else ""))
+                self.error(f"delete {name} {item['cluster_id']}: {rec['delete_error']}")
+        if all_gone:
+            item["status"] = "deleted"
+        item["deleted_at"] = now.isoformat()
+        self.stats["takedowns"] += 1
+        self.save(f"delete {item['cluster_id']}", push=True)
+        return "\n".join(lines) or "нема што да се брише"
+
+    # --------------------------------------------------------------- commands
+    def command(self, command: str, now: datetime) -> str | None:
+        data = self.store.data
+        if command == "/pause":
+            data["paused"] = now.isoformat()
+            self.save("pause", push=True)
+            return "⏸ Паузирано: нема нови нацрти ни објави. Копчињата и бришењето работат.\n/resume за продолжување."
+        if command == "/resume":
+            data.pop("paused", None)
+            self.save("resume", push=True)
+            return "▶️ Продолжува."
+        if command == "/status":
+            return self.status_text(now)
+        if command in ("/help", "/start"):
+            return ("Команди:\n/status — состојба\n/pause — запри нови нацрти и објави\n"
+                    "/resume — продолжи\n\nПод секоја објава има 🗑 за бришење насекаде.")
+        return None
+
+    def status_text(self, now: datetime) -> str:
+        items = self.store.items.values()
+        count = Counter(it["status"] for it in items)
+        mode = "автоматски" if self.auto else "рачно одобрување"
+        lines = [
+            "🤖 habermk",
+            f"Режим: {mode}{' (пробно, без објавување)' if self.dry_run else ''}",
+            f"Пауза: {'да, од ' + data_time(self.store.data['paused']) if self.store.data.get('paused') else 'не'}",
+            f"Денес објавени: {self.posts_today(now)} / {self.run_cfg['max_posts_per_day']}",
+            f"Чекаат одобрување: {count['draft']} · одобрени во ред: {count['approved']}",
+            f"Платформи: {', '.join(p.name for p in self.publishers) or 'нема'}",
+        ]
+        rests = self.router.active_cooldowns()
+        if rests:
+            tz = now.tzinfo
+            lines.append("Модели на пауза: " + ", ".join(
+                f"{m} до {datetime.fromtimestamp(t, tz).strftime('%H:%M')}" for m, t in rests.items()))
+        return "\n".join(lines)
 
     # ------------------------------------------------------------------ run
     def run(self) -> int:
@@ -264,7 +353,9 @@ class Bot:
         self.store.load()
         self.router.cooldown_until.update(self.store.data.get("model_cooldowns", {}))
         self.handle_approvals(now)
-        if self.in_window(now):
+        if self.store.data.get("paused"):
+            log.info("paused with /pause: only buttons and commands handled")
+        elif self.in_window(now):
             try:
                 self.collect(now)
             except Exception as e:

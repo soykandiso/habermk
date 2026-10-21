@@ -31,6 +31,19 @@ class FacebookPublisher:
         )
         data = resp.json()
         if "id" not in data:
-            err = data.get("error", {})
-            raise FacebookError(f"{err.get('type', resp.status_code)}: {err.get('message', '')}")
+            raise FacebookError(self._error(data, resp.status_code))
         return data["id"]
+
+    def delete(self, post_id: str) -> None:
+        resp = self._client.delete(f"{self._base}{post_id}", params={"access_token": self._token})
+        data = resp.json()
+        if not data.get("success"):
+            raise FacebookError(self._error(data, resp.status_code))
+
+    def link(self, post_id: str) -> str | None:
+        return f"https://www.facebook.com/{post_id}"
+
+    @staticmethod
+    def _error(data: dict, status: int) -> str:
+        err = data.get("error", {})
+        return f"{err.get('type', status)}: {err.get('message', '')}"
