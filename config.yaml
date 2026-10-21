@@ -1,0 +1,60 @@
+# Non-secret settings. Secrets (API keys, tokens) come ONLY from environment
+# variables / GitHub Secrets — never put them in this file.
+
+source:
+  url: https://vesti.mk/
+  user_agent: "habermk-bot/0.1 (+https://github.com/soykandiso/habermk)"
+  min_outlets: 4          # a cluster must be covered by at least N articles ("46 вести")
+  max_age_hours: 8        # ignore stories older than this
+
+extract:
+  min_chars: 250          # shorter extracted text -> try next article in the cluster
+  max_chars: 6000         # text sent to the model is cut here (cost / rate limits)
+  articles_per_cluster: 2 # how many articles of one story the model may try
+
+# Model order = fallback order. "provider:model". Extra keys are passed to that API.
+llm:
+  temperature: 0.2
+  models:
+    - id: "groq:openai/gpt-oss-120b"
+      min_interval_s: 25   # Groq free tier: 8K tokens/min
+      params: {reasoning_effort: low, include_reasoning: false}
+    - id: "gemini:gemini-2.5-flash"
+      min_interval_s: 7
+    - id: "groq:qwen/qwen3.8-27b"
+      min_interval_s: 25
+
+eval:
+  stories: 40
+  models:
+    - "groq:openai/gpt-oss-120b"
+    - "groq:qwen/qwen3.8-27b"
+    - "gemini:gemini-2.5-flash"
+  # add to compare paid quality (needs ANTHROPIC_API_KEY):
+  #   - "anthropic:claude-haiku-4-5"
+  #   - "anthropic:claude-sonnet-5-5"
+
+validation:
+  max_sentence_chars: 220
+  min_cyrillic_ratio: 0.9
+  min_evidence_chars: 20
+
+platforms:
+  bluesky_max_graphemes: 300
+  telegram_max_chars: 4096
+  facebook_graph_version: "v26.0"
+
+run:
+  timezone: Europe/Skopje
+  window_start: "06:00"     # no drafts or posts outside this window (local time)
+  window_end: "23:59"
+  candidates_per_run: 8     # top unseen clusters looked at per run
+  max_llm_stories_per_run: 4
+  max_posts_per_run: 2
+  max_posts_per_day: 30
+  draft_ttl_hours: 6        # an unanswered draft expires (stale news)
+  max_pending_runs: 3       # stories where every model failed are retried this often
+  max_platform_attempts: 3  # a platform that keeps failing is given up per story
+  dedupe_title_similarity: 0.8
+  dedupe_window_hours: 48
+  prune_after_days: 14
