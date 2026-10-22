@@ -50,7 +50,8 @@ whether vesti.mk keeps the same cluster ID while the headline changes.
    stored on the public `state` branch: without it, drafts you reject would be
    readable by anyone. Keep a copy in your password manager and never change it
    (a new key makes the bot forget what it already posted).
-7. Variable `BOT_ENABLED` = `true`. From now on the bot runs every 15 minutes, 06:00–23:59 Skopje time.
+7. Variable `BOT_ENABLED` = `true`, then set up the **15-minute clock** below
+   (required). The bot works 06:00–23:59 Skopje time.
 8. **Test without posting:** *Actions* → **run** → *Run workflow* → dry_run `1`.
    Drafts arrive in your private chat with ✅ / ❌. Nothing is posted in dry-run.
 9. **Live:** press ✅ on a draft. Within the next run (≤15–30 min) it appears in
@@ -92,13 +93,14 @@ your decisions, and how many were skipped and why.
 Limits (in `config.yaml` → `run`): max 2 posts per run, 30 per day, stories
 need ≥4 articles on vesti.mk and must be <8 h old.
 
-### Recommended: a reliable 15-minute clock
+### Required: a reliable 15-minute clock
 
-GitHub's own schedule is "best effort": it can start runs late or skip them,
-and in autumn 2026 many projects saw 15-minute schedules run only every few
-hours. A free external clock fixes this by starting the **run** workflow every
-15 minutes through GitHub's API. GitHub's schedule stays on as a backup; two
-runs can never overlap, and a run started twice in a row does no harm.
+GitHub's own schedule is "best effort". Measured in this repo on 22 Oct 2026:
+the workflows set to every 15 minutes ran **5 times in 24 hours** (01:34,
+06:32, 12:17, 17:16, 20:35 UTC), not 96. Many projects report the same since
+August 2026. A free external clock fixes this by starting the **run** workflow
+every 15 minutes through GitHub's API. GitHub's schedule stays on as a backup;
+two runs can never overlap, and a run started twice in a row does no harm.
 
 1. **A token that may only start this repo's workflows.** GitHub → your
    picture → *Settings* → *Developer settings* → *Personal access tokens* →
