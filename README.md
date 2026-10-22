@@ -26,7 +26,7 @@ Plan and status: **[docs/ROADMAP.md](docs/ROADMAP.md)**
 ## How a run works
 
 ```
-cron */15 ─► read ✅/❌ presses ─► vesti.mk top stories ─► dedupe
+every 15 min ─► read ✅/❌ presses ─► vesti.mk top stories ─► dedupe
           ─► full text (trafilatura, robots.txt respected) ─► model (fallback chain)
           ─► checks (one sentence, Cyrillic, length, evidence, names, numbers)
           ─► draft to you  ──✅──► Telegram │ Bluesky │ Facebook (each on its own)

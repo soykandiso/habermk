@@ -47,20 +47,28 @@ Status as of 21 Oct 2026. ✅ done and merged · ⏳ waiting on you · 🔜 next
 2. Secrets `GROQ_API_KEY`, `GEMINI_API_KEY` → run the **eval** workflow → score the CSV.
 3. Pick the final channel name/handle (the card says "Бадијала клик" for now).
 4. Telegram bot + channel, Bluesky app password, `STATE_KEY` → `BOT_ENABLED=true` → dry run → live with approval.
-5. Recommended: the external 15-minute clock (cron-job.org + a token that can
-   only start this repo's workflows; docs/SETUP.md). GitHub's schedule is
-   best effort and was widely late or silent in autumn 2026.
+5. **Required:** the external 15-minute clock (cron-job.org + a token that can
+   only start this repo's workflows; docs/SETUP.md). Measured: GitHub's own
+   15-minute schedule ran 5 times in 24 h in this repo.
 6. Optional: send the Time.mk email (docs/timemk-permission-email.md).
 7. Before `APPROVAL_MODE=auto`: about a week of manual approval, and a short consult with a media lawyer.
+
+## ✅ Measured with 24 h of probe data (21–22 Oct)
+- **Story IDs are stable**: 29 stories changed their headline and kept their
+  ID; 0 of 614 article links ever moved to another ID. Duplicate protection by
+  ID is sound (the URL and title checks stay as a backstop).
+- **Volume**: 114 distinct stories in 24 h (≈ 4.7 new per hour); a story stays
+  in the top list ≈ 4.4 h.
+- **Filters kept** (`max_age_hours` 8, `min_outlets` 4): 89 of 114 stories per
+  day are eligible, about 3× the 30-posts/day cap. 12 h would add only 9 older
+  stories (and AI calls on free quotas); ≥6 outlets would drop smaller
+  regional stories you asked to include.
+- **GitHub's schedule**: first scheduled run ≈ 4.5 h after the last workflow
+  edit, then about every 4–5 h instead of every 15 min → external clock required.
 
 ## 🔜 Next (I do these as soon as the inputs exist)
 - **Model choice from your eval scores**: put the winner first in `config.yaml`,
   tune the prompt on the stories it got wrong, and add those stories as test cases.
-- **Tune the story filters with 24 h of probe data**: `max_age_hours` (now 8)
-  and `min_outlets` (now 4). The first snapshots: 23 of 36 stories pass today's filters.
-- **Check cluster-ID stability** in the probe report (headline changes under one
-  ID; URLs moving between IDs). If IDs prove unstable, lean harder on the
-  URL/title duplicate checks.
 - **First live week**: read the digest and the skip reasons; tighten or loosen
   the checks where they reject good sentences or let weak ones through.
 
@@ -83,3 +91,5 @@ Status as of 21 Oct 2026. ✅ done and merged · ⏳ waiting on you · 🔜 next
 | 21 Oct | Rest a model on long rate limits instead of skipping stories | free quotas (Groq ≈ 50 articles/day) |
 | 21 Oct | Encrypt the state, single-commit branch | public repo: rejected drafts and deleted posts must not stay readable |
 | 21 Oct | External clock recommended; GitHub cron kept as backup | GitHub's 15-min schedule is best effort (community reports #206019, #185024, #203473); no scheduled run in this repo yet |
+| 22 Oct | External clock **required** | measured: 5 scheduled runs in 24 h instead of 96 |
+| 22 Oct | Keep filters at 8 h / ≥4 outlets | 24 h of data: 89 eligible stories/day, 3× the post cap |
