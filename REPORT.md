@@ -1,16 +1,17 @@
 # vesti.mk cluster-ID stability report
 
-- Snapshots: **71** from 2026-10-21T20:27:35+00:00 to 2026-11-02T19:34:48+00:00 (287.1 h)
-- Distinct cluster IDs: **1149** (≈ 4.0 new per hour)
-- Average time a cluster stays in the top list: **3.9 h**
-- Clusters whose headline changed but ID stayed the same: **193** (good: the ID survives headline changes)
-- Article URLs that appeared under more than one cluster ID: **3** of 5063 (bad if high: the same story got a new ID)
+- Snapshots: **72** from 2026-10-21T20:27:35+00:00 to 2026-11-03T01:45:31+00:00 (293.3 h)
+- Distinct cluster IDs: **1163** (≈ 4.0 new per hour)
+- Average time a cluster stays in the top list: **4.0 h**
+- Clusters whose headline changed but ID stayed the same: **197** (good: the ID survives headline changes)
+- Article URLs that appeared under more than one cluster ID: **4** of 5129 (bad if high: the same story got a new ID)
 
 ## Examples of URLs under several cluster IDs
 
 - https://topsport.mk/fudbal/jamal-proglasen-za-najdobar-mlad-fudbaler-viki-lopez-za-najdobra-mlada-fudbalerka → 290467, 290497
 - https://vazno.mk/sport/jamal-proglasen-za-najdobar-mlad-fudb → 290467, 290497
 - https://fokus.mk/jamal-pak-e-proglasen-za-najdobar-mlad-fudbaler → 290467, 290497
+- https://reporter.mk/ekonomija/nikoloski-so-germanskite-kompanii-otvorame-mozhnosti-za-novi-investitsii-i-rabotni-mesta-vo-makedonija → 336020, 336355
 
 ## Examples of headline changes under one ID
 
