@@ -1,10 +1,10 @@
 # vesti.mk cluster-ID stability report
 
-- Snapshots: **74** from 2026-10-21T20:27:35+00:00 to 2026-11-03T16:37:59+00:00 (308.2 h)
-- Distinct cluster IDs: **1234** (≈ 4.0 new per hour)
-- Average time a cluster stays in the top list: **3.8 h**
-- Clusters whose headline changed but ID stayed the same: **199** (good: the ID survives headline changes)
-- Article URLs that appeared under more than one cluster ID: **4** of 5399 (bad if high: the same story got a new ID)
+- Snapshots: **75** from 2026-10-21T20:27:35+00:00 to 2026-11-03T22:04:19+00:00 (313.6 h)
+- Distinct cluster IDs: **1261** (≈ 4.0 new per hour)
+- Average time a cluster stays in the top list: **3.7 h**
+- Clusters whose headline changed but ID stayed the same: **202** (good: the ID survives headline changes)
+- Article URLs that appeared under more than one cluster ID: **6** of 5513 (bad if high: the same story got a new ID)
 
 ## Examples of URLs under several cluster IDs
 
@@ -12,6 +12,8 @@
 - https://vazno.mk/sport/jamal-proglasen-za-najdobar-mlad-fudb → 290467, 290497
 - https://fokus.mk/jamal-pak-e-proglasen-za-najdobar-mlad-fudbaler → 290467, 290497
 - https://reporter.mk/ekonomija/nikoloski-so-germanskite-kompanii-otvorame-mozhnosti-za-novi-investitsii-i-rabotni-mesta-vo-makedonija → 336020, 336355
+- https://off.net.mk/nabrzinka/boki-13-osloboden-za-predmetot-megjunaroden-sojuz → 342055, 342214
+- https://48chasa.mk/boki-13-osloboden-od-obvinenijata-za-megjunaroden-sojuz-po-sedum-godini-padna-obvinenieto → 342055, 342214
 
 ## Examples of headline changes under one ID
 
