@@ -1,10 +1,10 @@
 # vesti.mk cluster-ID stability report
 
-- Snapshots: **82** from 2026-10-21T20:27:35+00:00 to 2026-11-05T18:18:56+00:00 (357.9 h)
-- Distinct cluster IDs: **1445** (≈ 4.0 new per hour)
+- Snapshots: **83** from 2026-10-21T20:27:35+00:00 to 2026-11-05T23:41:46+00:00 (363.2 h)
+- Distinct cluster IDs: **1468** (≈ 4.0 new per hour)
 - Average time a cluster stays in the top list: **3.5 h**
-- Clusters whose headline changed but ID stayed the same: **213** (good: the ID survives headline changes)
-- Article URLs that appeared under more than one cluster ID: **6** of 6225 (bad if high: the same story got a new ID)
+- Clusters whose headline changed but ID stayed the same: **224** (good: the ID survives headline changes)
+- Article URLs that appeared under more than one cluster ID: **7** of 6345 (bad if high: the same story got a new ID)
 
 ## Examples of URLs under several cluster IDs
 
@@ -14,6 +14,7 @@
 - https://reporter.mk/ekonomija/nikoloski-so-germanskite-kompanii-otvorame-mozhnosti-za-novi-investitsii-i-rabotni-mesta-vo-makedonija → 336020, 336355
 - https://off.net.mk/nabrzinka/boki-13-osloboden-za-predmetot-megjunaroden-sojuz → 342055, 342214
 - https://48chasa.mk/boki-13-osloboden-od-obvinenijata-za-megjunaroden-sojuz-po-sedum-godini-padna-obvinenieto → 342055, 342214
+- https://novamakedonija.com.mk/ekonomija/mickoski-za-alta-banka-apeliram-do-gragjanite-bidete-spokojni-ve-molam → 359623, 359917
 
 ## Examples of headline changes under one ID
 
