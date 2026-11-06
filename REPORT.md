@@ -1,10 +1,10 @@
 # vesti.mk cluster-ID stability report
 
-- Snapshots: **83** from 2026-10-21T20:27:35+00:00 to 2026-11-05T23:41:46+00:00 (363.2 h)
-- Distinct cluster IDs: **1468** (≈ 4.0 new per hour)
-- Average time a cluster stays in the top list: **3.5 h**
-- Clusters whose headline changed but ID stayed the same: **224** (good: the ID survives headline changes)
-- Article URLs that appeared under more than one cluster ID: **7** of 6345 (bad if high: the same story got a new ID)
+- Snapshots: **84** from 2026-10-21T20:27:35+00:00 to 2026-11-06T03:41:38+00:00 (367.2 h)
+- Distinct cluster IDs: **1472** (≈ 4.0 new per hour)
+- Average time a cluster stays in the top list: **3.6 h**
+- Clusters whose headline changed but ID stayed the same: **228** (good: the ID survives headline changes)
+- Article URLs that appeared under more than one cluster ID: **7** of 6382 (bad if high: the same story got a new ID)
 
 ## Examples of URLs under several cluster IDs
 
